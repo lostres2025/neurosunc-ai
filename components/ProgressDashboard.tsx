@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -45,7 +45,7 @@ export default function ProgressDashboard() {
         }
         
         try {
-          const response = await fetch(`/api/dashboard?userId=${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/dashboard?userId=${userId}`);
           if (!response.ok) throw new Error('No se pudieron cargar los datos del dashboard.');
           
           const fetchedData = await response.json();

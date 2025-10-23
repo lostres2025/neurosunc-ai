@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -21,7 +21,7 @@ export default function InsightsWidget() {
         const userId = (session.user as any)?.id;
         if (!userId) { setIsLoading(false); return; }
         try {
-          const response = await fetch(`/api/insights?userId=${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/insights?userId=${userId}`);;
           const data = await response.json();
           if (response.ok) {
             setInsights(data.insights);

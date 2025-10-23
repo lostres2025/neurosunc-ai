@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../../../app.config';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -47,7 +47,7 @@ export default function MemoryWorkGame() {
 
   const fetchAIFeedback = useCallback(async (gameType: string, finalScore: number, finalLevel: number) => {
     try {
-      const response = await fetch('/api/games/feedback', {
+      const response = await fetch(`${API_BASE_URL}/api/games/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gameType, score: finalScore, level: finalLevel }),
@@ -127,7 +127,7 @@ export default function MemoryWorkGame() {
     const durationInSeconds = Math.floor((Date.now() - startTime) / 1000);
 
     try {
-      await fetch('/api/games/sessions', {
+      await fetch(`${API_BASE_URL}/api/games/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

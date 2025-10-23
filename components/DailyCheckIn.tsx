@@ -1,5 +1,6 @@
 "use client";
-
+// ...
+import { API_BASE_URL } from '../app.config';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast'; // 1. IMPORTAMOS toast
@@ -42,7 +43,7 @@ export default function DailyCheckIn() {
     }
 
     try {
-      const response = await fetch('/api/logs', {
+      const response = await fetch(`${API_BASE_URL}/api/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, sleepHours, mood, fatigue }),

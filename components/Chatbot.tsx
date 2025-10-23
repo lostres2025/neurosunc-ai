@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config';
 import { useState, useEffect, useRef } from 'react';
 
 interface Message {
@@ -30,7 +30,7 @@ export default function Chatbot() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+       const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input }),

@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config'; 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -23,12 +23,12 @@ export default function PredictionAlert() {
           return;
         }
         try {
-          const response = await fetch(`/api/dashboard?userId=${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/dashboard?userId=${userId}`);
           if (!response.ok) return;
           const data = await response.json();
           const lastLog = data.dailyLogs?.[data.dailyLogs.length - 1]; 
           if (lastLog) {
-            const predictResponse = await fetch('/api/predict', {
+            const predictResponse = await fetch(`${API_BASE_URL}/api/predict`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(lastLog),

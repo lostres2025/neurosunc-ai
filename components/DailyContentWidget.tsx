@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config';
 import { useState, useEffect } from 'react';
 
 export default function DailyContentWidget() {
@@ -9,7 +9,7 @@ export default function DailyContentWidget() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch('/api/daily-content');
+        const response = await fetch(`${API_BASE_URL}/api/daily-content`);
         if (response.ok) {
           const data = await response.json();
           setContent(data.content);

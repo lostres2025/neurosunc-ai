@@ -1,5 +1,5 @@
 "use client";
-
+import { API_BASE_URL } from '../app.config';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
@@ -38,7 +38,7 @@ export default function CognitiveProfileWidget() {
         if (!userId) return;
 
         try {
-          const response = await fetch(`/api/cognitive-profile?userId=${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/cognitive-profile?userId=${userId}`);
           if (response.ok) {
             const data = await response.json();
             setProfileData(data);
