@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 // Aquí es donde se crean y exportan los 'handlers'
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+   trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
