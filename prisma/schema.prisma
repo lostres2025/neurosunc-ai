@@ -1,0 +1,65 @@
+// Este archivo define la estructura de tu base de datos.
+// Es el "plano" que Prisma usará para crear las tablas.
+
+// Configuración del generador de cliente para TypeScript
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Configuración de la fuente de datos (tu base de datos PostgreSQL en Supabase)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+//          MODELOS DE LA BASE DE DATOS
+// ==========================================
+
+// --- Modelo para los Usuarios ---
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relaciones inversas: Un usuario puede tener...
+  logs      DailyLog[]      // ...muchos registros diarios.
+  sessions  GameSession[]   // ...muchas sesiones de juego.
+}
+
+// --- Modelo para los Registros Diarios (Check-in) ---
+model DailyLog {
+  id          String    @id @default(cuid())
+  date        DateTime  @db.Date // El tipo @db.Date asegura que solo se guarde la fecha, sin hora.
+  
+  sleepHours  Float     // Horas de sueño, ej: 7.5
+  mood        Int       // Estado de ánimo, ej: 1 al 5
+  fatigue     Int       // Nivel de fatiga, ej: 1 al 5
+  
+  // Relación con el modelo User: Este registro pertenece a un usuario.
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // onDelete: Cascade borra los logs si se borra el usuario.
+
+  createdAt   DateTime  @default(now())
+
+  // Índice compuesto único: No puede haber dos registros para el mismo usuario en la misma fecha.
+  @@unique([userId, date])
+}
+
+// Modelo para las Sesiones de Juego
+model GameSession {
+  id        String    @id @default(cuid())
+  gameType  String    // Tipo de juego (ej. "MEMORY_WORK", "ATTENTION_STROOP")
+  score     Int       // Puntuación obtenida
+  level     Int       // Nivel alcanzado
+  
+  durationSeconds Int? // DURACIÓN EN SEGUNDOS (opcional)
+
+  // Relación con User
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+}
