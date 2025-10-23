@@ -1,21 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Ignoramos errores de ESLint
+  // --- ¡ESTA LÍNEA ES LA MÁS IMPORTANTE! ---
+  // Le dice a Next.js que genere un sitio estático en la carpeta 'out'.
+  output: 'export',
+  // ----------------------------------------
+  
+  // La siguiente configuración es para evitar errores con el componente <Image>
+  // en el modo de exportación estática.
+  images: {
+    unoptimized: true,
+  },
+
+  // Ignoramos errores de linting y typescript para asegurar el build.
   eslint: {
     ignoreDuringBuilds: true,
   },
-
-  // --- AÑADE ESTA SECCIÓN COMPLETA ---
-  // Ignoramos errores de TypeScript
   typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has TypeScript errors.
     ignoreBuildErrors: true,
-  },
-  // ------------------------------------
-
-  images: {
-    // ... tu configuración de images
   },
 }
 
