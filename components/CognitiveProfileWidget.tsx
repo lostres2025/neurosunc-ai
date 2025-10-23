@@ -49,11 +49,15 @@ export default function CognitiveProfileWidget() {
             }
             setProfileData(null); // Aseguramos que no hay datos
           }
-        } catch (error) {
-          console.error("Error de red al cargar el perfil:", error);
-        } finally {
-          setIsLoading(false);
-        }
+        } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
       };
       fetchProfile();
     } else if (status === 'unauthenticated') {

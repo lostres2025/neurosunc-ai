@@ -55,11 +55,15 @@ export default function DailyCheckIn() {
       } else {
         toast.error(data.message || 'Ocurrió un error.'); // <-- REEMPLAZO
       }
-    } catch (_err) {
-      toast.error('Error de conexión.'); // <-- REEMPLAZO
-    } finally {
-      setIsLoading(false);
-    }
+   } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
   };
   
   if (status === "loading") {

@@ -51,15 +51,15 @@ export default function ProgressDashboard() {
           const fetchedData = await response.json();
           setData(fetchedData);
 
-        } catch (err) {
-          if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("Ocurrió un error desconocido.");
-          }
-        } finally {
-          setIsLoading(false);
-        }
+        } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
       };
 
       fetchData();

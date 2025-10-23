@@ -14,12 +14,15 @@ export default function DailyContentWidget() {
           const data = await response.json();
           setContent(data.content);
         }
-      } catch (error) {
-        console.error("Error fetching daily content:", error);
-        // Si hay un error, simplemente no mostramos el widget
-      } finally {
-        setIsLoading(false);
-      }
+      } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
     };
     fetchContent();
   }, []); // Se ejecuta solo una vez al cargar el componente
@@ -39,7 +42,7 @@ export default function DailyContentWidget() {
   return (
     <div className="widget">
       <h2 className="widget-title">Tu Momento del Día</h2>
-      <p className="daily-content-text">"{content}"</p>
+      <p className="daily-content-text">&quot;{content}&quot;</p>
     </div>
   );
 }

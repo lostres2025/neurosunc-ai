@@ -38,12 +38,15 @@ export default function Chatbot() {
       const data = await response.json();
       const botMessage: Message = { sender: 'bot', text: data.reply || 'Lo siento, no pude procesar tu solicitud.' };
       setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-      const errorMessage: Message = { sender: 'bot', text: 'Error de conexión. Inténtalo de nuevo.' };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+   } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
   };
 
   return (

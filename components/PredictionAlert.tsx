@@ -39,11 +39,15 @@ export default function PredictionAlert() {
               setPrediction(predictData.prediction);
             }
           }
-        } catch (error) {
-          console.error("Error al obtener la predicción:", error);
-        } finally {
-          setIsLoading(false);
-        }
+        } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
       };
       fetchPrediction();
     } else {

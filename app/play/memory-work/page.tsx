@@ -56,9 +56,15 @@ export default function MemoryWorkGame() {
         const data = await response.json();
         setFeedbackFromAI(data.feedback);
       }
-    } catch (error) {
-      setFeedbackFromAI("No se pudo obtener el análisis.");
-    }
+    } catch (error: unknown) { // Especificamos el tipo 'unknown'
+  if (error instanceof Error) {
+    console.error("...", error.message);
+    // Si tienes un setError, sería: setError(error.message);
+  } else {
+    console.error("...", "Un error desconocido ocurrió");
+    // setError("Un error desconocido ocurrió");
+  }
+}
   }, []);
 
   useEffect(() => {

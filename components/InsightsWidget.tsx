@@ -26,10 +26,14 @@ export default function InsightsWidget() {
           if (response.ok) {
             setInsights(data.insights);
           }
-        } catch (error) {
-          console.error("Error fetching insights:", error);
-        } finally {
-          setIsLoading(false);
+        } catch (error: unknown) { // Especificamos el tipo 'unknown'
+            if (error instanceof Error) {
+               console.error("...", error.message);
+                // Si tienes un setError, sería: setError(error.message);
+           } else {
+              console.error("...", "Un error desconocido ocurrió");
+           // setError("Un error desconocido ocurrió");
+         }
         }
       };
       fetchInsights();
