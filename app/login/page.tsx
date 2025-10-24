@@ -16,6 +16,8 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     
+    const toastId = toast.loading('Iniciando sesión...');
+
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -23,21 +25,19 @@ export default function LoginPage() {
         password,
       });
 
-      if (result?.error) {
-        toast.error('Credenciales inválidas. Inténtalo de nuevo.');
-      } else {
-        // En caso de éxito, simplemente redirigimos.
-        // El 'isLoading' se detendrá en el 'finally'.
+      toast.dismiss(toastId);
+
+      if (result && !result.error) {
+        toast.success('¡Bienvenido!');
         router.push('/dashboard');
+      } else {
+        toast.error('Credenciales inválidas. Inténtalo de nuevo.');
+        setIsLoading(false);
       }
     } catch (error) {
-      toast.error('Ocurrió un error inesperado.');
-    } finally {
-      // --- CORRECCIÓN CLAVE ---
-      // Esta línea se ejecutará SIEMPRE, tanto en éxito como en error,
-      // asegurando que el estado de carga siempre se detenga.
+      toast.dismiss(toastId);
+      toast.error('Ocurrió un error inesperado de conexión.');
       setIsLoading(false);
-      // --- FIN DE LA CORRECCIÓN ---
     }
   };
 
@@ -71,9 +71,11 @@ export default function LoginPage() {
           </button>
         </form>
         <div className="auth-link-container">
+          {/* --- ETIQUETA CORREGIDA AQUÍ --- */}
           <Link href="/register" className="auth-link">
             ¿No tienes una cuenta? Regístrate
           </Link>
+          {/* --- FIN DE LA CORRECCIÓN --- */}
         </div>
       </div>
     </main>
