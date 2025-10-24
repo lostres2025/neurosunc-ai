@@ -2,12 +2,13 @@
 
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import prisma from '../../../lib/prisma';
 
 // Nota: En un proyecto real, necesitaríamos obtener el ID del usuario de la sesión (ej. con NextAuth).
 // Por AHORA, para poder probar, vamos a asumir que el frontend nos envía un `userId`.
 // ¡Esto es TEMPORAL y lo haremos seguro más adelante!
 
-const prisma = new PrismaClient();
+
 
 export async function POST(request: Request) {
   try {

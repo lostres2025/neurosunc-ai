@@ -2,8 +2,9 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
+import prisma from '../../../lib/prisma';
 
-const prisma = new PrismaClient();
+
 const groq = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
   apiKey: process.env.GROQ_API_KEY,

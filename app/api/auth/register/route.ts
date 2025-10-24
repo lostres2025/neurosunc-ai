@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import prisma from '../../../../lib/prisma';
 import bcrypt from 'bcryptjs';
 
 // Creamos una instancia para hablar con la base de datos
-const prisma = new PrismaClient();
+
 
 // Esta función se ejecuta cuando alguien hace una petición "POST" a nuestra API
 export async function POST(request: Request) {
