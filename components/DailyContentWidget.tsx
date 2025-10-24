@@ -1,6 +1,7 @@
 "use client";
-import { API_BASE_URL } from '../app.config';
+
 import { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../app.config'; 
 
 export default function DailyContentWidget() {
   const [content, setContent] = useState<string | null>(null);
@@ -13,19 +14,21 @@ export default function DailyContentWidget() {
         if (response.ok) {
           const data = await response.json();
           setContent(data.content);
+        } else {
+          // Si la respuesta no es OK, lo registramos para saberlo
+          console.error("DailyContent: La respuesta de la API no fue 'ok'.");
         }
-      } catch (error: unknown) { // Especificamos el tipo 'unknown'
-  if (error instanceof Error) {
-    console.error("...", error.message);
-    // Si tienes un setError, sería: setError(error.message);
-  } else {
-    console.error("...", "Un error desconocido ocurrió");
-    // setError("Un error desconocido ocurrió");
-  }
-}
+      } catch (error) {
+        console.error("DailyContent: Error de red al hacer fetch:", error);
+      } finally {
+        // --- CORRECCIÓN CLAVE ---
+        // Este bloque se ejecuta siempre, tanto si hay éxito como si hay error.
+        setIsLoading(false);
+        // --- FIN DE LA CORRECCIÓN ---
+      }
     };
     fetchContent();
-  }, []); // Se ejecuta solo una vez al cargar el componente
+  }, []); // El array vacío asegura que esto se ejecute solo una vez al cargar el componente
 
   if (isLoading) {
     return (
@@ -42,7 +45,7 @@ export default function DailyContentWidget() {
   return (
     <div className="widget">
       <h2 className="widget-title">Tu Momento del Día</h2>
-      <p className="daily-content-text">&quot;{content}&quot;</p>
+      <p className="daily-content-text">"{content}"</p>
     </div>
   );
 }
