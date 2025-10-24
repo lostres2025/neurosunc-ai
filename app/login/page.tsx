@@ -4,15 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import toast from 'react-hot-toast'; // Importamos toast
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  // Eliminamos el useState para error
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +25,19 @@ export default function LoginPage() {
 
       if (result?.error) {
         toast.error('Credenciales inválidas. Inténtalo de nuevo.');
-        setIsLoading(false);
       } else {
-        // No mostramos toast de éxito, simplemente redirigimos
+        // En caso de éxito, simplemente redirigimos.
+        // El 'isLoading' se detendrá en el 'finally'.
         router.push('/dashboard');
       }
     } catch (error) {
       toast.error('Ocurrió un error inesperado.');
+    } finally {
+      // --- CORRECCIÓN CLAVE ---
+      // Esta línea se ejecutará SIEMPRE, tanto en éxito como en error,
+      // asegurando que el estado de carga siempre se detenga.
       setIsLoading(false);
+      // --- FIN DE LA CORRECCIÓN ---
     }
   };
 
@@ -67,7 +70,6 @@ export default function LoginPage() {
             {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
-        {/* El contenedor de mensajes se elimina */}
         <div className="auth-link-container">
           <Link href="/register" className="auth-link">
             ¿No tienes una cuenta? Regístrate
