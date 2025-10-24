@@ -15,9 +15,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    toast.loading('Iniciando sesión...'); // Toast de carga
-    console.log(`[FRONTEND] 1. Intentando iniciar sesión para: ${email}`);
-
+    
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -25,30 +23,59 @@ export default function LoginPage() {
         password,
       });
 
-      console.log("[FRONTEND] 2. Respuesta recibida de NextAuth:", result);
-
-      if (result && !result.error) {
-        console.log("[FRONTEND] 3. Login exitoso. Redirigiendo a /dashboard...");
-        toast.dismiss(); // Cierra el toast de carga
-        toast.success('¡Bienvenido!');
-        router.push('/dashboard');
+      if (result?.error) {
+        toast.error('Credenciales inválidas. Inténtalo de nuevo.');
       } else {
-        console.error("[FRONTEND] 4. Error en el login:", result?.error);
-        toast.dismiss();
-        toast.error('Credenciales inválidas o error en el servidor.');
-        setIsLoading(false);
+        // En caso de éxito, simplemente redirigimos.
+        // El 'isLoading' se detendrá en el 'finally'.
+        router.push('/dashboard');
       }
     } catch (error) {
-      console.error("[FRONTEND] 5. Error catastrófico en el fetch:", error);
-      toast.dismiss();
-      toast.error('No se pudo conectar con el servidor.');
+      toast.error('Ocurrió un error inesperado.');
+    } finally {
+      // --- CORRECCIÓN CLAVE ---
+      // Esta línea se ejecutará SIEMPRE, tanto en éxito como en error,
+      // asegurando que el estado de carga siempre se detenga.
       setIsLoading(false);
+      // --- FIN DE LA CORRECCIÓN ---
     }
   };
 
   return (
     <main className="auth-page">
-      {/* ... (el resto de tu HTML del formulario no cambia) ... */}
+      <div className="auth-container">
+        <h1 className="auth-title">Iniciar Sesión</h1>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <input 
+            type="email"
+            placeholder="Correo Electrónico"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            className="auth-input"
+          />
+          <input 
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            className="auth-input"
+          />
+          <button 
+            type="submit"
+            disabled={isLoading}
+            className="auth-button"
+          >
+            {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
+          </button>
+        </form>
+        <div className="auth-link-container">
+          <Link href="/register" className="auth-link">
+            ¿No tienes una cuenta? Regístrate
+          </Link>
+        </div>
+      </div>
     </main>
   );
 }

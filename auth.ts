@@ -4,8 +4,8 @@ import { authConfig } from './auth.config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-console.log("[BACKEND] Cargando archivo auth.ts");
-console.log("[BACKEND] DATABASE_URL:", process.env.DATABASE_URL ? "Encontrada" : "NO ENCONTRADA");
+console.log("[AUTH.TS] Archivo cargado.");
+console.log("[AUTH.TS] DATABASE_URL:", process.env.DATABASE_URL ? "Encontrada" : "¡NO ENCONTRADA!");
 
 const prisma = new PrismaClient();
 
@@ -14,44 +14,58 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
-        console.log("[BACKEND] 1. Entrando a la función 'authorize' con credenciales:", credentials);
+        console.log("[AUTH.TS] -> Entrando a 'authorize' con:", credentials.email);
 
-        if (credentials.email && credentials.password) {
-          const email = credentials.email as string;
-          const password = credentials.password as string;
-
-          try {
-            console.log(`[BACKEND] 2. Buscando usuario: ${email}`);
-            const user = await prisma.user.findUnique({
-              where: { email: email.toLowerCase() },
-            });
-
-            if (!user) {
-              console.log("[BACKEND] 3. Usuario NO encontrado en la BD.");
-              return null;
-            }
-            console.log("[BACKEND] 3. Usuario encontrado:", user);
-
-            console.log("[BACKEND] 4. Comparando contraseñas...");
-            const passwordsMatch = await bcrypt.compare(password, user.password);
-
-            if (passwordsMatch) {
-              console.log("[BACKEND] 5. ¡Contraseña correcta! Login exitoso.");
-              const { password: _, ...userWithoutPassword } = user;
-              return userWithoutPassword;
-            } else {
-              console.log("[BACKEND] 5. Contraseña incorrecta.");
-              return null;
-            }
-          } catch (error) {
-            console.error("[BACKEND] 6. ERROR al conectar con la BD:", error);
-            return null; // Devuelve null si hay un error de base de datos
-          }
+        if (!credentials.email || !credentials.password) {
+          console.log("[AUTH.TS] Credenciales incompletas.");
+          return null;
         }
-        console.log("[BACKEND] 7. Credenciales incompletas.");
-        return null;
+          
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
+        try {
+          console.log(`[AUTH.TS] Buscando usuario: ${email.toLowerCase()}`);
+          const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
+          });
+
+          if (!user) {
+            console.log("[AUTH.TS] Usuario NO encontrado.");
+            return null;
+          }
+          console.log("[AUTH.TS] Usuario encontrado en BD.");
+
+          console.log("[AUTH.TS] Comparando contraseñas...");
+          const passwordsMatch = await bcrypt.compare(password, user.password);
+
+          if (passwordsMatch) {
+            console.log("[AUTH.TS] ¡Contraseñas coinciden! Login exitoso.");
+            const { password: _, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+          } else {
+            console.log("[AUTH.TS] ¡Contraseñas NO coinciden!");
+            return null;
+          }
+        } catch (error) {
+          console.error("[AUTH.TS] ERROR DE BASE DE DATOS:", error);
+          return null;
+        }
       },
     }),
   ],
-  // ... (el resto de tu configuración de sesión y callbacks no cambia)
+  session: { strategy: 'jwt' },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+    async session({ session, token }) {
+      if (token && session.user) {
+        (session.user as any).id = token.id;
+      }
+      return session;
+    },
+    ...authConfig.callbacks,
+  },
 });
