@@ -994,27 +994,70 @@ body {
 /* =============================================== */
 /* === ESTILOS PARA PERFIL COGNITIVO =========== */
 /* =============================================== */
-.ai-summary-box {
-  background-color: #0f172a; /* background-dark */
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid #334155; /* slate-700 */
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 12rem; /* 192px */
+}
+.loading-spinner {
+  width: 3rem; height: 3rem; /* 48px */
+  border-top-width: 2px;
+  border-bottom-width: 2px;
+  border-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.empty-state-container {
+  text-align: center;
+  padding: 2.5rem 0; /* py-10 */
+  color: var(--text-muted);
+}
+.empty-state-subtitle {
+  font-size: 0.875rem; /* sm */
+  margin-top: 0.5rem;
 }
 
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+@media (min-width: 768px) { /* md */
+  .profile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.radar-chart-container .recharts-polar-angle-axis-tick-value {
+  fill: var(--text-muted); /* Estilo para las etiquetas del gráfico */
+}
+
+.ai-summary-box {
+  background-color: var(--background-dark);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+}
 .ai-summary-title {
   font-weight: 600;
   color: var(--accent-yellow);
   margin-bottom: 0.5rem;
 }
-/* Estilos para el contenido Markdown generado por IA */
+
+/* Estilos para el contenido Markdown */
 .prose {
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--text-muted);
 }
-
-.prose-invert strong {
+.prose strong { /* Para que **texto** se vea en negrita y blanco */
   color: var(--text-light);
+  font-weight: 600;
 }
 /* =============================================== */
 /* === ESTILOS PARA WIDGET DE INSIGHTS ========= */
