@@ -376,9 +376,32 @@ input, textarea, select {
 .game-status-value { font-weight: 700; font-size: 1.25rem; color: var(--accent-blue); }
 .game-status-value.green { color: var(--accent-green); }
 .game-status-value.yellow { color: var(--accent-yellow); }
-.game-board-container { position: relative; width: 100%; max-width: 22rem; }
-.game-board { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; width: 100%; height: 100%; }
-.game-tile { border-radius: 1rem; transition: all 0.2s; border: 2px solid var(--border-color); background-color: var(--widget-dark); }
+
+/* --- CONTENEDOR DEL JUEGO DE MEMORIA (CORREGIDO) --- */
+.game-board-container { 
+  position: relative; 
+  width: 100%; 
+  max-width: 22rem; 
+  aspect-ratio: 1 / 1; /* Esto hace que sea un cuadrado perfecto */
+}
+.game-board { 
+  position: relative; 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  grid-template-rows: repeat(3, 1fr); /* ¡AÑADIDO! Define las filas */
+  gap: 0.75rem; 
+  width: 100%; 
+  height: 100%; 
+}
+.game-tile { 
+  border-radius: 1rem; 
+  transition: all 0.2s; 
+  border: 2px solid var(--border-color); 
+  background-color: var(--widget-dark); 
+  /* Las propiedades de width y height son heredadas de la cuadrícula */
+}
+/* --- FIN DE LA CORRECCIÓN --- */
+
 .game-tile.clickable:hover { border-color: var(--text-muted); }
 .game-tile.clickable:active { transform: scale(0.9); }
 .game-tile.illuminated { background-color: var(--accent-blue); border-color: var(--accent-blue-hover); box-shadow: 0 0 15px var(--accent-blue); transform: scale(0.95); }
@@ -386,6 +409,7 @@ input, textarea, select {
 .game-turn-indicator.showing { color: var(--accent-yellow); }
 .game-turn-indicator.playing { color: var(--accent-green); }
 .game-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(42, 58, 94, 0.9); z-index: 10; border-radius: 1rem; backdrop-filter: blur(4px); text-align: center; padding: 1rem; gap: 1rem; }
+.game-button { padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 700; font-size: 1.125rem; border: none; cursor: pointer; }
 .game-button.primary { background-color: var(--accent-blue); color: white; }
 .game-button.success { background-color: var(--accent-green); color: white; }
 .game-finished-title { font-size: 2.25rem; font-weight: 700; color: var(--accent-red); }
@@ -394,6 +418,7 @@ input, textarea, select {
 .game-final-score-box p { font-size: 1.125rem; color: var(--text-muted); }
 .game-final-score-box span { font-size: 3rem; font-weight: 700; color: white; }
 .game-feedback-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 20; }
+.game-feedback-bubble { color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 1.5rem; font-weight: 700; }
 .game-feedback-bubble.success { background-color: var(--accent-green); }
 .game-feedback-bubble.error { background-color: var(--accent-red); }
 .stroop-playing-container { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; }
@@ -404,6 +429,7 @@ input, textarea, select {
 .stroop-option-button:hover { border-color: white; }
 .stroop-option-button:active { transform: scale(0.95); }
 .stroop-finished-buttons { display: flex; flex-direction: column; gap: 1rem; width: 100%; }
+
 
 /* ... (El resto de las clases que ya tenías) ... */
 /* =============================================== */
