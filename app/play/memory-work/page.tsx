@@ -1,9 +1,10 @@
 "use client";
-import { API_BASE_URL } from '../../../app.config';
-import { useState, useEffect, useCallback, useRef } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../../../app.config';
 
 type GameState = 'start' | 'showing' | 'playing' | 'finished';
 
@@ -25,71 +26,38 @@ export default function MemoryWorkGame() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const gridSize = 9;
 
-  const generateSequence = useCallback(() => {
-    const newSequence: number[] = [];
-    for (let i = 0; i < level + 2; i++) {
-      newSequence.push(Math.floor(Math.random() * gridSize));
-    }
-    setSequence(newSequence);
-  }, [level]);
+  // --- LÓGICA DE JUEGO SIMPLIFICADA Y CORREGIDA ---
 
-  const startGame = useCallback(() => {
+  const prepareLevel = (currentLevel: number) => {
     setPlayerSequence([]);
     setFeedback(null);
     setActiveTile(null);
     setFeedbackFromAI(null);
-    if (level === 1 && startTime === 0) {
+    
+    if (currentLevel === 1 && startTime === 0) {
       setStartTime(Date.now());
     }
-    generateSequence();
-    setGameState('showing');
-  }, [generateSequence, level, startTime]);
 
-  const fetchAIFeedback = useCallback(async (gameType: string, finalScore: number, finalLevel: number) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/games/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameType, score: finalScore, level: finalLevel }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setFeedbackFromAI(data.feedback);
-      }
-    } catch (error: unknown) { // Especificamos el tipo 'unknown'
-  if (error instanceof Error) {
-    console.error("...", error.message);
-    // Si tienes un setError, sería: setError(error.message);
-  } else {
-    console.error("...", "Un error desconocido ocurrió");
-    // setError("Un error desconocido ocurrió");
-  }
-}
-  }, []);
-
-  useEffect(() => {
-    if (gameState === 'showing' && sequence.length > 0) {
-      let i = 0;
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(() => {
-        setActiveTile(sequence[i]);
-        setTimeout(() => setActiveTile(null), 500);
-        i++;
-        if (i >= sequence.length) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setTimeout(() => setGameState('playing'), 700);
-        }
-      }, 1000);
+    const newSequence = [];
+    for (let i = 0; i < currentLevel + 2; i++) {
+      newSequence.push(Math.floor(Math.random() * gridSize));
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [gameState, sequence]);
+    setSequence(newSequence);
+    setGameState('showing');
+  };
 
-  const handleTileClick = useCallback((tileIndex: number) => {
+  const startGame = () => {
+    // Resetea el juego al estado inicial antes de preparar el primer nivel
+    setLevel(1);
+    setScore(0);
+    prepareLevel(1);
+  };
+
+  const handleTileClick = (tileIndex: number) => {
     if (gameState !== 'playing') return;
     setActiveTile(tileIndex);
     setTimeout(() => setActiveTile(null), 200);
+
     const newPlayerSequence = [...playerSequence, tileIndex];
     setPlayerSequence(newPlayerSequence);
     
@@ -103,17 +71,51 @@ export default function MemoryWorkGame() {
     if (newPlayerSequence.length === sequence.length) {
       setFeedback('correct');
       setScore(prevScore => prevScore + level * 10);
+      
       setTimeout(() => {
-        setLevel(prevLevel => prevLevel + 1);
-        // Prepara para el siguiente nivel, que se iniciará con el useEffect
-        setPlayerSequence([]);
-        setFeedback(null);
-        setActiveTile(null);
-        setFeedbackFromAI(null);
-        setGameState('showing');
+        const nextLevel = level + 1;
+        setLevel(nextLevel);
+        prepareLevel(nextLevel); // Prepara el siguiente nivel directamente
       }, 1500);
     }
-  }, [gameState, playerSequence, sequence, fetchAIFeedback, score, level]);
+  };
+  
+  // --- FIN DE LA LÓGICA CORREGIDA ---
+  
+  const fetchAIFeedback = async (gameType: string, finalScore: number, finalLevel: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/games/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameType, score: finalScore, level: finalLevel }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFeedbackFromAI(data.feedback);
+      }
+    } catch (error) {
+      setFeedbackFromAI("No se pudo obtener el análisis.");
+    }
+  };
+
+  useEffect(() => {
+    if (gameState === 'showing' && sequence.length > 0) {
+      let i = 0;
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
+        setActiveTile(sequence[i]);
+        setTimeout(() => setActiveTile(null), 500);
+        i++;
+        if (i >= sequence.length) {
+          clearInterval(intervalRef.current!);
+          setTimeout(() => setGameState('playing'), 700);
+        }
+      }, 1000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [gameState, sequence]);
 
   const saveGame = async () => {
     setIsLoading(true);
@@ -179,7 +181,7 @@ export default function MemoryWorkGame() {
           </div>
         ) : (
           <>
-            {gameState === 'start' && feedback !== 'correct' && (
+            {gameState === 'start' && (
               <div className="game-overlay">
                 <p>Observa la secuencia y repítela.</p>
                 <button onClick={startGame} className="game-button primary">Empezar</button>
