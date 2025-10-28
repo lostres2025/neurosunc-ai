@@ -1,8 +1,7 @@
-// app/api/insights/route.ts
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../../lib/prisma'; // 1. IMPORTAMOS LA INSTANCIA CENTRAL
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient(); // 2. ELIMINAMOS LA INSTANCIA LOCAL
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,14 +12,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Obtenemos los datos de la última semana
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const dailyLogs = await prisma.dailyLog.findMany({
       where: { 
         userId: userId,
-        date: { gte: sevenDaysAgo } // gte = greater than or equal
+        date: { gte: sevenDaysAgo }
       },
       orderBy: { date: 'asc' },
     });
@@ -33,15 +31,14 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'asc' },
     });
 
-    // --- INICIO DEL MOTOR DE REGLAS PARA GENERAR INSIGHTS ---
     const insights: string[] = [];
 
-    // Regla 1: Consistencia en el Check-in
+    // Regla 1: Consistencia
     if (dailyLogs.length >= 5) {
       insights.push(`¡Excelente consistencia! Has completado tu check-in ${dailyLogs.length} veces en la última semana.`);
     }
 
-    // Regla 2: Correlación Sueño-Rendimiento (si hay suficientes datos)
+    // Regla 2: Correlación Sueño-Rendimiento
     if (dailyLogs.length >= 3 && gameSessions.length >= 3) {
       const goodSleepHours = dailyLogs.filter(log => log.sleepHours >= 7.5);
       const goodSleepDates = goodSleepHours.map(log => log.date.toISOString().split('T')[0]);
@@ -54,7 +51,8 @@ export async function GET(request: Request) {
         const avgScoreGoodSleep = scoresOnGoodSleepDays.reduce((acc, s) => acc + s.score, 0) / scoresOnGoodSleepDays.length;
         const avgTotalScore = gameSessions.reduce((acc, s) => acc + s.score, 0) / gameSessions.length;
 
-        if (avgScoreGoodSleep > avgTotalScore * 1.1) { // Si es un 10% mejor
+        // 3. MEJORA: Añadimos una validación para evitar división por cero
+        if (avgTotalScore > 0 && avgScoreGoodSleep > avgTotalScore * 1.1) {
           insights.push("Dato interesante: Tus puntuaciones tienden a ser más altas en los días que duermes bien. ¡Un buen descanso potencia tu mente!");
         }
       }
@@ -62,13 +60,17 @@ export async function GET(request: Request) {
     
     // Regla 3: Mejora en el Estado de Ánimo
     if (dailyLogs.length >= 4) {
-        const firstHalfMood = dailyLogs.slice(0, Math.floor(dailyLogs.length / 2));
-        const secondHalfMood = dailyLogs.slice(Math.floor(dailyLogs.length / 2));
-        const avgMoodFirst = firstHalfMood.reduce((acc, log) => acc + log.mood, 0) / firstHalfMood.length;
-        const avgMoodSecond = secondHalfMood.reduce((acc, log) => acc + log.mood, 0) / secondHalfMood.length;
+        const firstHalf = dailyLogs.slice(0, Math.floor(dailyLogs.length / 2));
+        const secondHalf = dailyLogs.slice(Math.floor(dailyLogs.length / 2));
 
-        if (avgMoodSecond > avgMoodFirst) {
-            insights.push("¡Buenas noticias! Tu estado de ánimo promedio ha mostrado una tendencia positiva recientemente. ¡Sigue así!");
+        // 3. MEJORA: Evitamos división por cero si una de las mitades está vacía
+        if (firstHalf.length > 0 && secondHalf.length > 0) {
+            const avgMoodFirst = firstHalf.reduce((acc, log) => acc + log.mood, 0) / firstHalf.length;
+            const avgMoodSecond = secondHalf.reduce((acc, log) => acc + log.mood, 0) / secondHalf.length;
+
+            if (avgMoodSecond > avgMoodFirst) {
+                insights.push("¡Buenas noticias! Tu estado de ánimo promedio ha mostrado una tendencia positiva recientemente. ¡Sigue así!");
+            }
         }
     }
 
