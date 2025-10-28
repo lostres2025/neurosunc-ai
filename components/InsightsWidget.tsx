@@ -1,11 +1,11 @@
 "use client";
-import { API_BASE_URL } from '../app.config';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { API_BASE_URL } from '../app.config';
 
 const CheckIcon = () => (
-  // El icono SVG no cambia
-  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <svg className="insight-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
   </svg>
 );
@@ -16,33 +16,40 @@ export default function InsightsWidget() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      const fetchInsights = async () => {
-        const userId = (session.user as any)?.id;
-        if (!userId) { setIsLoading(false); return; }
-        try {
-          const response = await fetch(`${API_BASE_URL}/api/insights?userId=${userId}`);;
+    if (status !== 'authenticated') {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchInsights = async () => {
+      const userId = (session.user as any)?.id;
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/insights?userId=${userId}`);
+        if (response.ok) {
           const data = await response.json();
-          if (response.ok) {
+          // Solo actualizamos si 'insights' es un array
+          if (Array.isArray(data.insights)) {
             setInsights(data.insights);
           }
-        } catch (error: unknown) { // Especificamos el tipo 'unknown'
-            if (error instanceof Error) {
-               console.error("...", error.message);
-                // Si tienes un setError, sería: setError(error.message);
-           } else {
-              console.error("...", "Un error desconocido ocurrió");
-           // setError("Un error desconocido ocurrió");
-         }
         }
-      };
-      fetchInsights();
-    } else if (status === 'unauthenticated') {
-      setIsLoading(false);
-    }
+      } catch (error) {
+        console.error("Error fetching insights:", error);
+      } finally {
+        // --- CORRECCIÓN CLAVE ---
+        // Este bloque se ejecuta siempre y detiene la carga.
+        setIsLoading(false);
+      }
+    };
+
+    fetchInsights();
   }, [session, status]);
 
-  // No mostrar nada si está cargando o si no hay insights que mostrar
+  // Si está cargando, o si después de cargar no hay insights, no mostramos nada.
   if (isLoading || insights.length === 0) {
     return null;
   }
