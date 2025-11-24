@@ -708,3 +708,134 @@ input, textarea, select {
   color: white; /* Se ilumina en blanco al pasar el mouse */
   transform: rotate(45deg); /* Gira sutilmente al hacer hover */
 }
+
+/* =========================================
+   ESTILOS DEL PANEL DE ADMINISTRADOR
+   (Pega esto al final de globals.css)
+========================================= */
+
+/* Contenedor Principal: Fondo claro y texto oscuro */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc; /* Gris muy claro */
+  color: #1e293b; /* Gris oscuro para texto */
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Sidebar (Menú Lateral) */
+.admin-sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.admin-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5; /* Índigo */
+  margin-bottom: 2rem;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-nav-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.admin-nav-link:hover {
+  background-color: #eef2ff;
+  color: #4338ca;
+}
+
+/* Área Principal */
+.admin-main {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Grilla del Dashboard (Tarjetas) */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.admin-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.admin-card-title {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.admin-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Tablas */
+.admin-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background-color: #f1f5f9;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.95rem;
+}
+
+/* Responsividad básica para móviles */
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1rem;
+  }
+}

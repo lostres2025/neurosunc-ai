@@ -29,7 +29,14 @@ export default function LoginPage() {
 
       if (result && !result.error) {
         toast.success('¡Bienvenido!');
-        router.push('/dashboard');
+        
+        // --- CAMBIO CLAVE AQUÍ ---
+        // Usamos window.location para forzar una recarga limpia.
+        // Esto enviará al usuario a "/" (Home).
+        // Tu archivo app/page.tsx detectará que es ADMIN y lo redirigirá a /admin.
+        window.location.href = '/';
+        // -------------------------
+
       } else {
         toast.error('Credenciales inválidas. Inténtalo de nuevo.');
         setIsLoading(false);
@@ -71,11 +78,9 @@ export default function LoginPage() {
           </button>
         </form>
         <div className="auth-link-container">
-          {/* --- ETIQUETA CORREGIDA AQUÍ --- */}
           <Link href="/register" className="auth-link">
             ¿No tienes una cuenta? Regístrate
           </Link>
-          {/* --- FIN DE LA CORRECCIÓN --- */}
         </div>
       </div>
     </main>

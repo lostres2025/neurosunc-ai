@@ -1,6 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+// --- 1. NUEVOS IMPORTS NECESARIOS ---
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const BrainIcon = () => (
   <div className="welcome-icon">
@@ -12,6 +16,24 @@ const BrainIcon = () => (
 );
 
 export default function WelcomePage() {
+  // --- 2. LÓGICA DEL "PORTERO" (AGREGADO) ---
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Si la sesión ya cargó (authenticated) y el usuario es ADMIN...
+    if (status === 'authenticated' && session?.user && (session.user as any).role === 'ADMIN') {
+      router.push('/admin'); // ...redirigir automáticamente al panel.
+    }
+    
+    // Opcional: Si es un paciente (USER) y ya está logueado, podrías mandarlo directo a /play
+    // if (status === 'authenticated' && session?.user && (session.user as any).role === 'USER') {
+    //   router.push('/play'); 
+    // }
+
+  }, [session, status, router]);
+
+  // --- 3. TU DISEÑO ORIGINAL (INTACTO) ---
   return (
     <main className="welcome-page">
       <div className="welcome-hero">
@@ -22,6 +44,7 @@ export default function WelcomePage() {
         </p>
       </div>
       <div className="welcome-actions">
+        {/* Si NO hay sesión cargando o no hay usuario, muestra los botones */}
         <Link href="/register" className="welcome-button-primary">
           Comenzar Ahora
         </Link>

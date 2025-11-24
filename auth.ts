@@ -41,6 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (passwordsMatch) {
             console.log("[AUTH.TS] ¡Contraseñas coinciden! Login exitoso.");
+            // Al devolver el usuario aquí, Prisma ya incluye el campo 'role'
             const { password: _, ...userWithoutPassword } = user;
             return userWithoutPassword;
           } else {
@@ -57,12 +58,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt' },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        // NUEVO: Guardamos el rol en el token
+        // Usamos 'as any' para evitar errores de tipo si no has actualizado auth.d.ts
+        token.role = (user as any).role; 
+      }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         (session.user as any).id = token.id;
+        // NUEVO: Pasamos el rol del token a la sesión del navegador
+        (session.user as any).role = token.role;
       }
       return session;
     },
