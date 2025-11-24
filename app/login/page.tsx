@@ -29,13 +29,11 @@ export default function LoginPage() {
 
       if (result && !result.error) {
         toast.success('¡Bienvenido!');
-  
-         // 1. Refrescamos el router para que Next.js actualice las cookies
-           router.refresh(); 
-  
-        // 2. Empujamos al usuario a la raíz (o admin directo si prefieres)
-          router.push('/'); 
-
+        
+        // FORZAMOS LA RECARGA HACIA LA RAÍZ
+        // Esto activa la lógica de app/page.tsx
+        router.refresh();
+        router.replace('/'); 
 
       } else {
         toast.error('Credenciales inválidas. Inténtalo de nuevo.');

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-// --- 1. NUEVOS IMPORTS NECESARIOS ---
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -16,24 +15,40 @@ const BrainIcon = () => (
 );
 
 export default function WelcomePage() {
-  // --- 2. LÓGICA DEL "PORTERO" (AGREGADO) ---
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    // Si la sesión ya cargó (authenticated) y el usuario es ADMIN...
-    if (status === 'authenticated' && session?.user && (session.user as any).role === 'ADMIN') {
-      router.push('/admin'); // ...redirigir automáticamente al panel.
-    }
-    
-    // Opcional: Si es un paciente (USER) y ya está logueado, podrías mandarlo directo a /play
-    // if (status === 'authenticated' && session?.user && (session.user as any).role === 'USER') {
-    //   router.push('/play'); 
-    // }
+    // 1. Si está cargando, esperamos
+    if (status === 'loading') return;
 
+    // 2. Si ya sabemos que está autenticado
+    if (status === 'authenticated' && session?.user) {
+      
+      const role = (session.user as any).role;
+
+      if (role === 'ADMIN') {
+        // Caso Psicóloga
+        router.replace('/admin');
+      } else {
+        // Caso Paciente (Usuario) -> AQUÍ ESTÁ EL CAMBIO
+        router.replace('/dashboard');
+      }
+    }
   }, [session, status, router]);
 
-  // --- 3. TU DISEÑO ORIGINAL (INTACTO) ---
+  // Pantalla de carga (mientras redirige para que no parpadee el menú)
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <main className="welcome-page flex items-center justify-center">
+        <div className="text-white text-xl animate-pulse font-bold">
+          Cargando NeuroSync... 🧠
+        </div>
+      </main>
+    );
+  }
+
+  // Diseño Original (para visitantes no logueados)
   return (
     <main className="welcome-page">
       <div className="welcome-hero">
@@ -44,7 +59,6 @@ export default function WelcomePage() {
         </p>
       </div>
       <div className="welcome-actions">
-        {/* Si NO hay sesión cargando o no hay usuario, muestra los botones */}
         <Link href="/register" className="welcome-button-primary">
           Comenzar Ahora
         </Link>
