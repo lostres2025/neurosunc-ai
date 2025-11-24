@@ -2,12 +2,10 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import prisma from './lib/prisma';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 console.log("[AUTH.TS] Archivo cargado.");
 console.log("[AUTH.TS] DATABASE_URL:", process.env.DATABASE_URL ? "Encontrada" : "¡NO ENCONTRADA!");
-
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -34,16 +32,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             console.log("[AUTH.TS] Usuario NO encontrado.");
             return null;
           }
-          console.log("[AUTH.TS] Usuario encontrado en BD.");
+          console.log("[AUTH.TS] Usuario encontrado en BD. ID:", user.id);
 
           console.log("[AUTH.TS] Comparando contraseñas...");
           const passwordsMatch = await bcrypt.compare(password, user.password);
 
           if (passwordsMatch) {
             console.log("[AUTH.TS] ¡Contraseñas coinciden! Login exitoso.");
-            // Al devolver el usuario aquí, Prisma ya incluye el campo 'role'
-            const { password: _, ...userWithoutPassword } = user;
-            return userWithoutPassword;
+            // Retornamos el usuario completo. Prisma ya incluye 'id' y 'role'
+            return user;
           } else {
             console.log("[AUTH.TS] ¡Contraseñas NO coinciden!");
             return null;
@@ -57,23 +54,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: 'jwt' },
   callbacks: {
+    // 1. JWT: Se ejecuta al hacer login. Aquí guardamos los datos en el token encriptado.
     async jwt({ token, user }) {
       if (user) {
+        // Guardamos explícitamente el ID y el ROL
         token.id = user.id;
-        // NUEVO: Guardamos el rol en el token
-        // Usamos 'as any' para evitar errores de tipo si no has actualizado auth.d.ts
-        token.role = (user as any).role; 
+        token.role = (user as any).role;
+        console.log("[AUTH.TS] JWT Generado - ID Guardado:", token.id);
       }
       return token;
     },
+    // 2. SESSION: Se ejecuta cada vez que el usuario navega o llama a la API.
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id;
-        // NUEVO: Pasamos el rol del token a la sesión del navegador
-        (session.user as any).role = token.role;
+        // Pasamos los datos del token a la sesión visible
+        (session.user as any).id = token.id as string;
+        (session.user as any).role = token.role as string;
       }
       return session;
-    },
-    ...authConfig.callbacks,
+    }
+    // NOTA: He eliminado '...authConfig.callbacks' aquí para evitar que sobrescriba 
+    // la lógica de ID y ROL que acabamos de definir arriba.
   },
 });
