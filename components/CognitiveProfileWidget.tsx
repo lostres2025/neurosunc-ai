@@ -4,13 +4,12 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
 import ReactMarkdown from 'react-markdown';
-import { API_BASE_URL } from '../app.config';
 
 // Componente para el estado de carga
 const LoadingState = () => (
   <div className="widget">
     <h2 className="widget-title">Perfil Cognitivo</h2>
-    <div className="loading-container"> {/* Usamos una clase CSS */}
+    <div className="loading-container">
       <div className="loading-spinner"></div>
     </div>
   </div>
@@ -28,31 +27,28 @@ const EmptyState = () => (
 );
 
 export default function CognitiveProfileWidget() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Si no está autenticado, no hacemos nada.
+    // 1. Esperar a que cargue la sesión
+    if (status === 'loading') return;
+
     if (status !== 'authenticated') {
       setIsLoading(false);
       return;
     }
 
     const fetchProfile = async () => {
-      const userId = (session.user as any)?.id;
-      if (!userId) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const response = await fetch(`${API_BASE_URL}/api/cognitive-profile?userId=${userId}`);
+        // 2. CAMBIO CLAVE: Llamada segura sin ID en la URL
+        // La API debe leer la cookie de sesión para saber quién es el usuario
+        const response = await fetch('/api/cognitive-profile');
         
-        // Si la respuesta no es OK (incluye 404), no establecemos datos.
         if (!response.ok) {
           setProfileData(null);
-          return; // Salimos de la función
+          return;
         }
         
         const data = await response.json();
@@ -60,17 +56,16 @@ export default function CognitiveProfileWidget() {
 
       } catch (error) {
         console.error("Error de red al cargar el perfil:", error);
-        setProfileData(null); // Aseguramos que no hay datos en caso de error
+        setProfileData(null);
       } finally {
-        // Esta línea es crucial y se ejecuta siempre
         setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, [session, status]);
+  }, [status]);
 
-  if (isLoading || status === 'loading') {
+  if (isLoading) {
     return <LoadingState />;
   }
 
@@ -94,16 +89,17 @@ export default function CognitiveProfileWidget() {
           <ResponsiveContainer width="100%" height={250}>
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
               <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="subject" />
+              <PolarAngleAxis dataKey="subject" stroke="#94a3b8" />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
               <Radar name="Tu Perfil" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+              <Legend />
             </RadarChart>
           </ResponsiveContainer>
         </div>
         {/* Lado del Resumen de la IA */}
         <div className="ai-summary-box">
           <h3 className="ai-summary-title">Análisis del Coach</h3>
-          <div className="prose">
+          <div className="prose text-sm text-slate-300">
             <ReactMarkdown>{profileData.summary}</ReactMarkdown>
           </div>
         </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { API_BASE_URL } from '../app.config'; 
 
 const LightbulbIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="prediction-icon" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,32 +10,36 @@ const LightbulbIcon = () => (
 );
 
 export default function PredictionAlert() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [prediction, setPrediction] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Esperar a que la sesión cargue
+    if (status === 'loading') return;
+    
+    // Si no está autenticado, no cargamos nada
     if (status !== 'authenticated') {
       setIsLoading(false);
       return;
     }
 
     const fetchPrediction = async () => {
-      const userId = (session?.user as any)?.id;
-      if (!userId) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const response = await fetch(`${API_BASE_URL}/api/dashboard?userId=${userId}`);
-        if (!response.ok) return; // Salir si no podemos obtener los logs
+        // 2. Obtenemos los logs del usuario (Ruta segura, sin ID en URL)
+        const response = await fetch('/api/dashboard');
+        
+        if (!response.ok) return; 
 
         const data = await response.json();
+        
+        // Obtenemos el último registro (el más reciente)
+        // Nota: Asumimos que la API devuelve los logs ordenados, tomamos el último de la lista.
         const lastLog = data.dailyLogs?.[data.dailyLogs.length - 1]; 
 
         if (lastLog) {
-          const predictResponse = await fetch(`${API_BASE_URL}/api/predict`, {
+          // 3. Enviamos ese log al motor de predicción
+          const predictResponse = await fetch('/api/predict', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(lastLog),
@@ -52,22 +55,20 @@ export default function PredictionAlert() {
       } catch (error) {
         console.error("Error al obtener la predicción:", error);
       } finally {
-        // --- ESTA ES LA CORRECCIÓN CLAVE ---
-        // Se ejecuta siempre, asegurando que el estado de carga termine.
         setIsLoading(false);
       }
     };
 
     fetchPrediction();
-  }, [session, status]);
+  }, [status]);
 
   if (isLoading || !prediction) {
     return null;
   }
 
   return (
-    <div className="prediction-alert">
-      <div className="prediction-icon-container"> {/* Contenedor para el icono */}
+    <div className="prediction-alert animate-fade-in">
+      <div className="prediction-icon-container">
         <LightbulbIcon />
       </div>
       <div className="prediction-text-container">
