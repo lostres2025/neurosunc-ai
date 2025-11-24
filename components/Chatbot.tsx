@@ -1,5 +1,4 @@
 "use client";
-import { API_BASE_URL } from '../app.config';
 import { useState, useEffect, useRef } from 'react';
 
 interface Message {
@@ -19,38 +18,51 @@ export default function Chatbot() {
   // Efecto para hacer scroll automático al final de los mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isLoading]); // Agregamos isLoading para que haga scroll cuando aparece el indicador de escritura
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    // 1. Agregamos mensaje del usuario
     const userMessage: Message = { sender: 'user', text: input };
     setMessages(prev => [...prev, userMessage]);
+    
+    // Guardamos el input temporalmente y limpiamos el campo
+    const messageToSend = input;
     setInput('');
     setIsLoading(true);
 
     try {
-       const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      // 2. Llamada a la API (Ruta relativa segura)
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: messageToSend }),
       });
+
+      if (!response.ok) {
+        throw new Error('Error en el servicio de chat');
+      }
+
       const data = await response.json();
-      const botMessage: Message = { sender: 'bot', text: data.reply || 'Lo siento, no pude procesar tu solicitud.' };
+      
+      // 3. Respuesta del Bot
+      const botMessage: Message = { sender: 'bot', text: data.reply || 'No entendí, ¿puedes repetir?' };
       setMessages(prev => [...prev, botMessage]);
-   } catch (error: unknown) { // Especificamos el tipo 'unknown'
-  if (error instanceof Error) {
-    console.error("...", error.message);
-    // Si tienes un setError, sería: setError(error.message);
-  } else {
-    console.error("...", "Un error desconocido ocurrió");
-    // setError("Un error desconocido ocurrió");
-  }
-}
+
+    } catch (error) {
+      console.error("Chat Error:", error);
+      // Avisamos al usuario que hubo un error
+      setMessages(prev => [...prev, { sender: 'bot', text: '😔 Lo siento, tuve un problema de conexión. Intenta de nuevo.' }]);
+    } finally {
+      // 4. Importante: Siempre apagamos el indicador de carga
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
+      {/* Botón Flotante */}
       <button 
         onClick={() => setIsOpen(true)}
         className={`chatbot-button ${isOpen ? 'hidden' : ''}`}
@@ -61,10 +73,11 @@ export default function Chatbot() {
         </svg>
       </button>
 
+      {/* Ventana del Chat */}
       {isOpen && (
         <div className="chatbot-window">
           <div className="chatbot-header">
-            <h3>NeuroSync Coach</h3>
+            <h3>NeuroSync Coach 🧠</h3>
             <button onClick={() => setIsOpen(false)} aria-label="Cerrar chat">&times;</button>
           </div>
           
@@ -74,10 +87,12 @@ export default function Chatbot() {
                 <div className="message-bubble">{msg.text}</div>
               </div>
             ))}
+            
+            {/* Indicador de "Escribiendo..." */}
             {isLoading && (
               <div className="message-wrapper bot">
                 <div className="message-bubble typing-indicator">
-                  <span></span><span></span><span></span>
+                  <span>.</span><span>.</span><span>.</span>
                 </div>
               </div>
             )}
@@ -92,7 +107,11 @@ export default function Chatbot() {
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Escribe un mensaje..."
               className="chatbot-input"
+              disabled={isLoading}
             />
+            <button onClick={handleSend} disabled={isLoading || !input.trim()} style={{ marginLeft: '10px', background: 'none', border: 'none', cursor: 'pointer', color: '#4f46e5' }}>
+              ➤
+            </button>
           </div>
         </div>
       )}

@@ -1,35 +1,42 @@
 // src/app/api/dashboard/route.ts
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { auth } from '@/auth';
 import prisma from '../../../lib/prisma';
 
 
 
 export async function GET(request: Request) {
-  // Obtenemos los parámetros de la URL, por ejemplo: /api/dashboard?userId=clxxxx
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-
-  if (!userId) {
-    return NextResponse.json({ message: 'Falta el ID del usuario.' }, { status: 400 });
-  }
-
   try {
-    // Buscamos los últimos 30 registros diarios del usuario
+    // 1. SEGURIDAD: En lugar de leer la URL, leemos la COOKIE de sesión
+    const session = await auth();
+
+    // Si no hay sesión, rechazamos la petición
+    if (!session || !session.user) {
+      return NextResponse.json({ message: 'No autorizado. Inicia sesión.' }, { status: 401 });
+    }
+
+    // 2. Extraemos el ID del usuario de la sesión
+    // Usamos 'as any' por si TypeScript se queja del campo id
+    const userId = (session.user as any).id;
+
+    if (!userId) {
+      return NextResponse.json({ message: 'Error de sesión: ID no encontrado.' }, { status: 401 });
+    }
+
+    // 3. Consultas a la Base de Datos (Igual que antes, pero con el userId seguro)
     const dailyLogs = await prisma.dailyLog.findMany({
       where: { userId: userId },
-      orderBy: { date: 'asc' }, // Ordenados por fecha ascendente
-      take: 30, // Limitamos a los últimos 30 para no sobrecargar
+      orderBy: { date: 'asc' },
+      take: 30, 
     });
 
-    // Buscamos las últimas 50 sesiones de juego del usuario
     const gameSessions = await prisma.gameSession.findMany({
       where: { userId: userId },
       orderBy: { createdAt: 'asc' },
       take: 50,
     });
 
-    // Devolvemos ambos conjuntos de datos en un solo objeto
     return NextResponse.json({ dailyLogs, gameSessions });
 
   } catch (error) {

@@ -1,51 +1,68 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../app.config'; 
+import { useSession } from 'next-auth/react';
 
-export default function DailyContentWidget() {
-  const [content, setContent] = useState<string | null>(null);
+const CheckIcon = () => (
+  <svg className="insight-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+  </svg>
+);
+
+export default function InsightsWidget() {
+  const { status } = useSession();
+  const [insights, setInsights] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchContent = async () => {
+    // 1. Si no ha cargado la sesión o no está logueado, no hacemos nada aún
+    if (status === 'loading') return;
+    
+    if (status !== 'authenticated') {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchInsights = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/daily-content`);
+        // 2. CAMBIO CLAVE: Ruta relativa y sin enviar ID (la API lee la cookie)
+        const response = await fetch('/api/insights');
+        
         if (response.ok) {
           const data = await response.json();
-          setContent(data.content);
-        } else {
-          // Si la respuesta no es OK, lo registramos para saberlo
-          console.error("DailyContent: La respuesta de la API no fue 'ok'.");
+          // Solo actualizamos si 'insights' es un array válido
+          if (Array.isArray(data.insights)) {
+            setInsights(data.insights);
+          }
         }
       } catch (error) {
-        console.error("DailyContent: Error de red al hacer fetch:", error);
+        console.error("Error fetching insights:", error);
       } finally {
-        // --- CORRECCIÓN CLAVE ---
-        // Este bloque se ejecuta siempre, tanto si hay éxito como si hay error.
         setIsLoading(false);
-        // --- FIN DE LA CORRECCIÓN ---
       }
     };
-    fetchContent();
-  }, []); // El array vacío asegura que esto se ejecute solo una vez al cargar el componente
 
-  if (isLoading) {
-    return (
-      <div className="widget">
-        <div className="daily-content-loader"></div>
-      </div>
-    );
-  }
+    fetchInsights();
+  }, [status]); // Solo dependemos del status de la sesión
 
-  if (!content) {
-    return null; // No renderizar nada si no se pudo obtener el contenido
+  // Si está cargando, o si no hay insights, no mostramos el widget
+  if (isLoading || insights.length === 0) {
+    return null;
   }
 
   return (
     <div className="widget">
-      <h2 className="widget-title">Tu Momento del Día</h2>
-      <p className="daily-content-text">"{content}"</p>
+      <h2 className="widget-title">Análisis Inteligente 💡</h2>
+      <ul className="insights-list">
+        {insights.map((insight, index) => (
+          <li key={index} className="insight-item">
+            <div className="insight-icon">
+              <CheckIcon />
+            </div>
+            <p className="insight-text">{insight}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

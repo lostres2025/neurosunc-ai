@@ -1,10 +1,9 @@
 "use client";
-import { API_BASE_URL } from '../app.config';
+
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-// Definimos los tipos de datos que esperamos de la API
 interface DailyLog {
   date: string;
   sleepHours: number;
@@ -14,12 +13,12 @@ interface DailyLog {
 interface GameSession {
   createdAt: string;
   score: number;
+  gameType: string; // Agregué el tipo de juego para el futuro
 }
 
-// Componente para mostrar un estado de carga
 const LoadingSpinner = () => (
   <div className="flex justify-center items-center h-48">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500"></div>
   </div>
 );
 
@@ -31,96 +30,122 @@ export default function ProgressDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Solo intentamos cargar si está autenticado
     if (status === 'authenticated') {
       const fetchData = async () => {
         setIsLoading(true);
         setError(null);
         
-        const userId = (session?.user as any)?.id;
-        
-        if (!userId) {
-          setError("No se pudo obtener el ID del usuario.");
-          setIsLoading(false);
-          return;
-        }
-        
         try {
-          const response = await fetch(`${API_BASE_URL}/api/dashboard?userId=${userId}`);
-          if (!response.ok) throw new Error('No se pudieron cargar los datos del dashboard.');
+          // CAMBIO CLAVE: Usamos ruta relativa y NO enviamos userId.
+          // La API lo sacará de la cookie de sesión automáticamente.
+          const response = await fetch('/api/dashboard');
+          
+          if (!response.ok) {
+            throw new Error('Error al cargar datos');
+          }
           
           const fetchedData = await response.json();
           setData(fetchedData);
 
-        } catch (error: unknown) { // Especificamos el tipo 'unknown'
-  if (error instanceof Error) {
-    console.error("...", error.message);
-    // Si tienes un setError, sería: setError(error.message);
-  } else {
-    console.error("...", "Un error desconocido ocurrió");
-    // setError("Un error desconocido ocurrió");
-  }
-}
+        } catch (error) {
+          console.error("Dashboard Error:", error);
+          setError("No se pudieron cargar tus datos.");
+        } finally {
+          setIsLoading(false);
+        }
       };
 
       fetchData();
     } else if (status === 'unauthenticated') {
+      // Si no hay sesión, paramos la carga
       setIsLoading(false);
-      setError("Necesitas iniciar sesión para ver tu progreso.");
     }
-    
-  }, [session, status]);
+  }, [status]); // Solo dependemos del status
 
-  // Formateamos los datos para que Recharts los entienda
+  // Formateo de datos
   const formattedLogData = data?.dailyLogs.map(log => ({
     ...log,
-    date: new Date(log.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+    // Formato corto de fecha (ej: "24 oct")
+    date: new Date(log.date).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }),
   })) || [];
 
   const formattedGameData = data?.gameSessions.map(session => ({
     ...session,
-    date: new Date(session.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+    date: new Date(session.createdAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }),
   })) || [];
 
+  // Estados de carga y error
+  if (status === 'loading' || isLoading) return <LoadingSpinner />;
+  
+  if (status === 'unauthenticated') return (
+    <div className="bg-slate-800 p-8 rounded-lg text-center text-slate-400">
+      Debes iniciar sesión para ver tu progreso.
+    </div>
+  );
 
-  if (isLoading || status === 'loading') return <LoadingSpinner />;
-  if (error) return <p className="text-red-400 text-center h-48 flex items-center justify-center">{error}</p>;
+  if (error) return (
+    <div className="bg-red-900/20 border border-red-500/50 p-4 rounded-lg text-red-200 text-center">
+      {error}
+    </div>
+  );
+
   if (!data || (data.dailyLogs.length === 0 && data.gameSessions.length === 0)) {
-    return <p className="text-slate-500 text-center h-48 flex items-center justify-center">No hay suficientes datos para mostrar gráficos. ¡Sigue registrando y jugando!</p>;
+    return (
+      <div className="bg-slate-800 p-8 rounded-lg text-center">
+        <p className="text-slate-300 text-lg mb-2">📉 Aún no hay datos</p>
+        <p className="text-slate-500 text-sm">Completa tu Check-in diario o juega una partida para ver estadísticas.</p>
+      </div>
+    );
   }
-
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
-      {/* Gráfico 1: Evolución del Sueño y Estado de Ánimo */}
-      <div className="bg-slate-800 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4 text-white">Evolución de Hábitos</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={formattedLogData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-            <XAxis dataKey="date" stroke="#A0AEC0" />
-            <YAxis stroke="#A0AEC0" />
-            <Tooltip contentStyle={{ backgroundColor: '#1A202C', border: '1px solid #4A5568' }} />
-            <Legend />
-            <Line type="monotone" dataKey="sleepHours" name="Horas de Sueño" stroke="#4299E1" strokeWidth={2} />
-            <Line type="monotone" dataKey="mood" name="Ánimo" stroke="#48BB78" strokeWidth={2} />
-          </LineChart>
-        </ResponsiveContainer>
+      
+      {/* Gráfico 1: Evolución del Sueño y Ánimo */}
+      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+        <h3 className="text-lg font-bold mb-6 text-white flex items-center gap-2">
+          🩺 Evolución de Hábitos
+        </h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={formattedLogData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="date" stroke="#94a3b8" tick={{fontSize: 12}} />
+              <YAxis stroke="#94a3b8" tick={{fontSize: 12}} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', color: '#fff' }} 
+              />
+              <Legend wrapperStyle={{ paddingTop: '10px' }} />
+              <Line type="monotone" dataKey="sleepHours" name="Sueño (hrs)" stroke="#60a5fa" strokeWidth={3} dot={{r:4}} />
+              <Line type="monotone" dataKey="mood" name="Ánimo (1-5)" stroke="#34d399" strokeWidth={3} dot={{r:4}} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
       
-      {/* Gráfico 2: Puntuaciones en Juegos */}
-      <div className="bg-slate-800 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4 text-white">Rendimiento en Juegos</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      {/* Gráfico 2: Puntuaciones */}
+      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+        <h3 className="text-lg font-bold mb-6 text-white flex items-center gap-2">
+          🎮 Rendimiento en Juegos
+        </h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={formattedGameData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#4A5568" />
-                <XAxis dataKey="date" stroke="#A0AEC0" />
-                <YAxis stroke="#A0AEC0" />
-                <Tooltip contentStyle={{ backgroundColor: '#1A202C', border: '1px solid #4A5568' }} />
-                <Legend />
-                <Bar dataKey="score" name="Puntuación" fill="#4299E1" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="date" stroke="#94a3b8" tick={{fontSize: 12}} />
+              <YAxis stroke="#94a3b8" tick={{fontSize: 12}} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569', borderRadius: '8px', color: '#fff' }} 
+                cursor={{fill: 'rgba(255,255,255,0.05)'}}
+              />
+              <Legend wrapperStyle={{ paddingTop: '10px' }} />
+              <Bar dataKey="score" name="Puntuación" fill="#818cf8" radius={[4, 4, 0, 0]} />
             </BarChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </div>
       </div>
+
     </div>
   );
 }
