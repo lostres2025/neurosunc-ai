@@ -1,27 +1,37 @@
-// src/app/api/games/sessions/route.ts
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import prisma from '../../../../lib/prisma';
-
-
+import { auth } from '@/auth'; // Importamos la autenticación
+import prisma from '@/lib/prisma'; // Usamos el import limpio (ajusta si usas ../../../)
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { userId, gameType, score, level } = body;
+    // 1. SEGURIDAD: Obtener usuario de la sesión
+    const session = await auth();
 
-    // Validación
-    if (!userId || !gameType || score === undefined || level === undefined) {
-      return NextResponse.json({ message: 'Faltan datos requeridos.' }, { status: 400 });
+    // Si no hay sesión o no hay ID de usuario, rechazamos
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ message: 'No autorizado. Debes iniciar sesión.' }, { status: 401 });
     }
 
-    // Crear la nueva sesión de juego en la base de datos
+    // Obtenemos el ID real y seguro
+    const userId = (session.user as any).id;
+
+    // 2. Leer datos del juego (Ya no esperamos userId aquí)
+    const body = await request.json();
+    const { gameType, score, level, durationSeconds } = body;
+
+    // Validación de datos del juego
+    if (!gameType || score === undefined || level === undefined) {
+      return NextResponse.json({ message: 'Faltan datos requeridos del juego.' }, { status: 400 });
+    }
+
+    // 3. Crear la nueva sesión en la base de datos
     const newSession = await prisma.gameSession.create({
       data: {
-        userId,
+        userId, // Usamos el ID de la sesión
         gameType,
         score,
         level,
+        durationSeconds: durationSeconds || 0, // Opcional, por defecto 0
       },
     });
 

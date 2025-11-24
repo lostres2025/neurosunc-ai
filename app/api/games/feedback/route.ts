@@ -1,13 +1,14 @@
-// app/api/games/feedback/route.ts
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { auth } from '@/auth'; // 1. Importamos la seguridad
 
+// Configuración de Groq
 const groq = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
   apiKey: process.env.GROQ_API_KEY,
 });
 
-// Función para generar el prompt específico para cada tipo de juego
+// Función para generar el prompt específico
 const getSystemPrompt = (gameType: string, score: number, level: number): string => {
   const basePrompt = `
     Eres "NeuroSync Coach", un asistente de IA experto en análisis de rendimiento cognitivo. 
@@ -38,11 +39,17 @@ const getSystemPrompt = (gameType: string, score: number, level: number): string
     `;
   }
 
-  return basePrompt; // Fallback por si el tipo de juego no se reconoce
+  return basePrompt;
 };
 
 export async function POST(request: Request) {
   try {
+    // 2. SEGURIDAD: Verificar sesión
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ message: 'No autorizado.' }, { status: 401 });
+    }
+
     const { gameType, score, level } = await request.json();
 
     if (!gameType || score === undefined || level === undefined) {
@@ -51,22 +58,24 @@ export async function POST(request: Request) {
 
     const systemPrompt = getSystemPrompt(gameType, score, level);
 
+    // 3. LLAMADA A GROQ (Modelo Corregido)
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b", // Usamos un modelo rápido para feedback instantáneo
+      model: "llama3-70b-8192", // Modelo correcto y rápido
       messages: [
         { role: "system", content: systemPrompt },
-        // Le pasamos un mensaje de usuario simple solo para iniciar la conversación
-        { role: "user", content: "Dame mi feedback." }, 
+        { role: "user", content: "Analiza mi partida y dame feedback." }, 
       ],
-      temperature: 0.8,
+      temperature: 0.7,
+      max_tokens: 150, // Limitamos la respuesta para que sea breve
     });
 
-    const feedback = completion.choices[0].message.content;
+    const feedback = completion.choices[0]?.message?.content || "¡Buen trabajo! Sigue entrenando para mejorar.";
     
     return NextResponse.json({ feedback });
 
   } catch (error) {
     console.error('[GAME_FEEDBACK_API_ERROR]', error);
-    return new NextResponse(null, { status: 500 }); // Devolvemos un error vacío para no romper el frontend
+    // Devolvemos un mensaje genérico en caso de error para que el juego no se rompa
+    return NextResponse.json({ feedback: "¡Bien jugado! Sigue así." }); 
   }
 }
