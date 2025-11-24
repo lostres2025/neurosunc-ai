@@ -1,4 +1,4 @@
-import { auth } from '@/auth';
+import { auth, signOut } from '@/auth'; // <--- IMPORTANTE: Importamos signOut
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -10,36 +10,75 @@ export default async function AdminLayout({
   const session = await auth();
 
   if (!session?.user) redirect('/api/auth/signin');
-  // Ajusta esto según cómo tengas tus tipos. Si te da error "role", usa (session.user as any).role
   if ((session.user as any).role !== 'ADMIN') redirect('/');
 
   return (
-    // Usamos la clase .admin-layout que definimos en CSS
-    <div className="admin-layout">
+    // Estilos CSS puros para el layout
+    <div 
+      className="admin-layout"
+      style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', color: '#1e293b', fontFamily: 'system-ui, sans-serif' }}
+    >
       
-      {/* Sidebar con clase CSS */}
-      <aside className="admin-sidebar">
-        <div className="admin-logo">
+      {/* Sidebar */}
+      <aside 
+        className="admin-sidebar" 
+        style={{ width: '260px', backgroundColor: 'white', borderRight: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', padding: '1.5rem' }}
+      >
+        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4f46e5', marginBottom: '2rem' }}>
           NeuroSync Admin
         </div>
         
-        <nav className="admin-nav">
-          <Link href="/admin" className="admin-nav-link">
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+          <Link 
+            href="/admin" 
+            style={{ display: 'block', padding: '0.75rem 1rem', borderRadius: '8px', color: '#475569', textDecoration: 'none', fontWeight: '500' }}
+          >
             📊 Dashboard
           </Link>
 
-          <Link href="/admin/patients" className="admin-nav-link">
+          <Link 
+            href="/admin/patients" 
+            style={{ display: 'block', padding: '0.75rem 1rem', borderRadius: '8px', color: '#475569', textDecoration: 'none', fontWeight: '500' }}
+          >
              👥 Pacientes
           </Link>
-          
-          <Link href="/" className="admin-nav-link" style={{ marginTop: 'auto' }}>
-             📱 Volver a la App
-          </Link>
         </nav>
+
+        {/* --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE --- */}
+        <div style={{ marginTop: 'auto', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
+          
+          <div style={{ marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b' }}>
+            Sesión iniciada como:<br/>
+            <strong>{session.user.email}</strong>
+          </div>
+
+          {/* Botón de Cerrar Sesión (Server Action) */}
+          <form
+            action={async () => {
+              "use server";
+              // Esto borra la cookie y te manda al inicio
+              await signOut({ redirectTo: "/" });
+            }}
+          >
+            <button 
+              type="submit" 
+              style={{ 
+                width: '100%', padding: '0.75rem', backgroundColor: '#fee2e2', 
+                color: '#991b1b', border: 'none', borderRadius: '8px', 
+                fontWeight: 'bold', cursor: 'pointer', textAlign: 'center'
+              }}
+            >
+              🚪 Cerrar Sesión
+            </button>
+          </form>
+
+        </div>
+        {/* ------------------------------------- */}
+
       </aside>
 
-      {/* Contenido Principal con clase CSS */}
-      <main className="admin-main">
+      {/* Contenido Principal */}
+      <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
         {children}
       </main>
     </div>
