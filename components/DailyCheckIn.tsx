@@ -1,12 +1,11 @@
 "use client";
-// ...
-import { API_BASE_URL } from '../app.config';
+
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import toast from 'react-hot-toast'; // 1. IMPORTAMOS toast
+import toast from 'react-hot-toast';
 
+// El componente Slider se mantiene igual
 const Slider = ({ label, value, onChange }: { label: string, value: number, onChange: (value: number) => void }) => (
-  // ... (El componente Slider no cambia)
   <div className="slider-wrapper">
     <div className="slider-labels">
       <label className="slider-label-text">{label}</label>
@@ -30,45 +29,52 @@ export default function DailyCheckIn() {
   const [mood, setMood] = useState(3);
   const [fatigue, setFatigue] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
-  // 2. ELIMINAMOS el useState de 'message'
 
   const handleSubmit = async () => {
-    setIsLoading(true);
-    const userId = (session?.user as any)?.id;
-
-    if (!userId) {
-      toast.error('Usuario no autenticado.'); // <-- REEMPLAZO
-      setIsLoading(false);
+    // 1. Validación previa básica
+    if (status !== 'authenticated') {
+      toast.error('Debes iniciar sesión para guardar.');
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/logs`, {
+      // 2. CAMBIO IMPORTANTE: Usamos ruta relativa "/api/logs"
+      // No enviamos userId en el body, la API lo saca de la cookie segura.
+      const response = await fetch('/api/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, sleepHours, mood, fatigue }),
+        body: JSON.stringify({ 
+          // userId, <--- YA NO SE ENVÍA. Es inseguro y redundante.
+          sleepHours, 
+          mood, 
+          fatigue 
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('¡Check-in guardado!'); // <-- REEMPLAZO
+        toast.success('¡Check-in guardado correctamente!');
       } else {
-        toast.error(data.message || 'Ocurrió un error.'); // <-- REEMPLAZO
+        // Si la API devuelve error, lo mostramos
+        toast.error(data.message || 'Error al guardar.');
       }
-   } catch (error: unknown) { // Especificamos el tipo 'unknown'
-  if (error instanceof Error) {
-    console.error("...", error.message);
-    // Si tienes un setError, sería: setError(error.message);
-  } else {
-    console.error("...", "Un error desconocido ocurrió");
-    // setError("Un error desconocido ocurrió");
-  }
-}
+
+    } catch (error) {
+      console.error("Error en Check-in:", error);
+      toast.error('Error de conexión con el servidor.');
+      
+    } finally {
+      // 3. CAMBIO CRÍTICO: Esto se ejecuta SIEMPRE (éxito o error)
+      // Esto arregla que se quede "Cargando..." infinitamente.
+      setIsLoading(false);
+    }
   };
   
   if (status === "loading") {
-    return <div className="widget loading"><p>Cargando...</p></div>;
+    return <div className="widget loading"><p>Cargando panel...</p></div>;
   }
 
   return (
@@ -82,13 +88,12 @@ export default function DailyCheckIn() {
 
       <button
         onClick={handleSubmit}
-        disabled={isLoading || status !== 'authenticated'}
+        disabled={isLoading}
         className="widget-button"
+        style={{ opacity: isLoading ? 0.7 : 1 }}
       >
         {isLoading ? 'Guardando...' : 'Guardar Registro'}
       </button>
-
-      {/* 3. ELIMINAMOS el div que mostraba el mensaje antiguo */}
     </div>
   );
 }
