@@ -29,13 +29,13 @@ export default function LoginPage() {
 
       if (result && !result.error) {
         toast.success('¡Bienvenido!');
-        
-        // --- CAMBIO CLAVE AQUÍ ---
-        // Usamos window.location para forzar una recarga limpia.
-        // Esto enviará al usuario a "/" (Home).
-        // Tu archivo app/page.tsx detectará que es ADMIN y lo redirigirá a /admin.
-        window.location.href = '/';
-        // -------------------------
+  
+         // 1. Refrescamos el router para que Next.js actualice las cookies
+           router.refresh(); 
+  
+        // 2. Empujamos al usuario a la raíz (o admin directo si prefieres)
+          router.push('/'); 
+
 
       } else {
         toast.error('Credenciales inválidas. Inténtalo de nuevo.');
