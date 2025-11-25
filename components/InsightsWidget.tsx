@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { API_BASE_URL } from '../app.config';
 
 const CheckIcon = () => (
   <svg className="insight-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,28 +10,27 @@ const CheckIcon = () => (
 );
 
 export default function InsightsWidget() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [insights, setInsights] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Si no ha cargado la sesión o no está logueado, no hacemos nada aún
+    if (status === 'loading') return;
+    
     if (status !== 'authenticated') {
       setIsLoading(false);
       return;
     }
 
     const fetchInsights = async () => {
-      const userId = (session.user as any)?.id;
-      if (!userId) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const response = await fetch(`${API_BASE_URL}/api/insights?userId=${userId}`);
+        // 2. CAMBIO CLAVE: Ruta relativa y sin enviar ID (la API lee la cookie)
+        const response = await fetch('/api/insights');
+        
         if (response.ok) {
           const data = await response.json();
-          // Solo actualizamos si 'insights' es un array
+          // Solo actualizamos si 'insights' es un array válido
           if (Array.isArray(data.insights)) {
             setInsights(data.insights);
           }
@@ -40,23 +38,21 @@ export default function InsightsWidget() {
       } catch (error) {
         console.error("Error fetching insights:", error);
       } finally {
-        // --- CORRECCIÓN CLAVE ---
-        // Este bloque se ejecuta siempre y detiene la carga.
         setIsLoading(false);
       }
     };
 
     fetchInsights();
-  }, [session, status]);
+  }, [status]); // Solo dependemos del status de la sesión
 
-  // Si está cargando, o si después de cargar no hay insights, no mostramos nada.
+  // Si está cargando, o si no hay insights, no mostramos el widget
   if (isLoading || insights.length === 0) {
     return null;
   }
 
   return (
     <div className="widget">
-      <h2 className="widget-title">Análisis Inteligente</h2>
+      <h2 className="widget-title">Análisis Inteligente 💡</h2>
       <ul className="insights-list">
         {insights.map((insight, index) => (
           <li key={index} className="insight-item">

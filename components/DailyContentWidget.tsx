@@ -3,66 +3,79 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
-const CheckIcon = () => (
-  <svg className="insight-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+// Icono decorativo
+const SparkleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-yellow-400">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
   </svg>
 );
 
-export default function InsightsWidget() {
+export default function DailyContentWidget() {
   const { status } = useSession();
-  const [insights, setInsights] = useState<string[]>([]);
+  const [content, setContent] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Si no ha cargado la sesión o no está logueado, no hacemos nada aún
+    // 1. Esperar a que la sesión termine de cargar
     if (status === 'loading') return;
-    
+
+    // Si no está autenticado, no intentamos cargar nada
     if (status !== 'authenticated') {
       setIsLoading(false);
       return;
     }
 
-    const fetchInsights = async () => {
+    const fetchDailyContent = async () => {
       try {
-        // 2. CAMBIO CLAVE: Ruta relativa y sin enviar ID (la API lee la cookie)
-        const response = await fetch('/api/insights');
+        // 2. Llamada a la API (Ruta relativa, segura)
+        // La API verifica la sesión internamente usando auth()
+        const response = await fetch('/api/daily-content');
         
         if (response.ok) {
           const data = await response.json();
-          // Solo actualizamos si 'insights' es un array válido
-          if (Array.isArray(data.insights)) {
-            setInsights(data.insights);
-          }
+          // La API devuelve un objeto { content: "texto..." }
+          setContent(data.content);
+        } else {
+          // Mensaje amable si falla la red o el servidor
+          setContent("El conocimiento de hoy se está cargando... Intenta recargar la página.");
         }
       } catch (error) {
-        console.error("Error fetching insights:", error);
+        console.error("Error fetching daily content:", error);
+        // Fallback por si todo falla estrepitosamente
+        setContent("Recuerda hidratarte para mantener tu cerebro activo."); 
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInsights();
-  }, [status]); // Solo dependemos del status de la sesión
+    fetchDailyContent();
+  }, [status]);
 
-  // Si está cargando, o si no hay insights, no mostramos el widget
-  if (isLoading || insights.length === 0) {
-    return null;
-  }
+  // Si no hay sesión iniciada, no mostramos el widget
+  if (status !== 'authenticated') return null;
 
   return (
-    <div className="widget">
-      <h2 className="widget-title">Análisis Inteligente 💡</h2>
-      <ul className="insights-list">
-        {insights.map((insight, index) => (
-          <li key={index} className="insight-item">
-            <div className="insight-icon">
-              <CheckIcon />
-            </div>
-            <p className="insight-text">{insight}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="widget bg-gradient-to-br from-indigo-900 to-slate-900 border border-indigo-500/30 shadow-lg">
+      <div className="flex items-center gap-2 mb-3">
+        <SparkleIcon />
+        <h2 className="widget-title text-white m-0">Píldora Cognitiva</h2>
+      </div>
+      
+      <div className="min-h-[60px] flex items-center">
+        {isLoading ? (
+          <div className="flex gap-2 items-center text-slate-400 text-sm animate-pulse">
+            {/* Animación de carga: puntos rebotando */}
+            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            <span className="ml-2">Generando contenido con IA...</span>
+          </div>
+        ) : (
+          <p className="text-indigo-100 text-sm leading-relaxed italic">
+            "{content}"
+          </p>
+        )}
+      </div>
     </div>
   );
 }
