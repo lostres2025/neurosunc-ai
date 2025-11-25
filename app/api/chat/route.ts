@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     // 3. Llamada a la IA
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b", 
+      model: "llama-3.3-70b-versatile", 
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: message },

@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
     // 3. LLAMADA A GROQ (Modelo Corregido)
     const completion = await groq.chat.completions.create({
-      model: "llama3-70b-8192", // Modelo correcto y rápido
+      model: "llama-3.3-70b-versatile", // Modelo correcto y rápido
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: "Analiza mi partida y dame feedback." }, 

@@ -83,7 +83,7 @@ export async function GET(request: Request) {
     const userData = `Datos del Perfil (0-100): Memoria=${scores.memory}, Atención=${scores.attention}, Bienestar=${scores.wellness}.`;
     
     const completion = await groq.chat.completions.create({
-      model: "llama3-70b-8192", // Modelo corregido
+      model: "llama-3.3-70b-versatile", // Modelo corregido
       messages: [
         { role: "system", content: systemPrompt }, 
         { role: "user", content: userData }
