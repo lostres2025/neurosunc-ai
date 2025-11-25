@@ -36,9 +36,7 @@ export async function POST(request: Request) {
 
     // 3. Llamada a la IA
     const completion = await groq.chat.completions.create({
-      // --- CAMBIO CLAVE: Usamos un modelo real de Groq ---
-      // "llama3-70b-8192" es el más inteligente y rápido actualmente.
-      model: "llama3-70b-8192", 
+      model: "openai/gpt-oss-20b", 
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: message },

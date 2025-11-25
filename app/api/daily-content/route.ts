@@ -39,7 +39,7 @@ export async function GET() {
 
     const completion = await groq.chat.completions.create({
       // 4. CORRECCIÓN: Usamos un modelo válido y rápido de Groq
-      model: "llama3-70b-8192", 
+      model: "openai/gpt-oss-20b", 
       messages: [{ role: "system", content: systemPrompt }],
       temperature: 0.9, 
       max_tokens: 100, // Limitamos para asegurar brevedad
