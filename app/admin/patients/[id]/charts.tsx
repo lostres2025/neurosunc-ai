@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,22 +15,22 @@ export default function PatientCharts({ logs, sessions }: { logs: any[], session
     sleep: log.sleepHours
   })).reverse(); 
 
-  // 2. PREPARAR DATOS DE JUEGOS (SEPARADOS)
+  // 2. PREPARAR DATOS DE JUEGOS (SEPARADOS POR TIPO)
   
-  // A) Filtramos solo los de Memoria
+  // A) Memoria
   const memoryData = sessions
-    .filter(session => session.gameType === 'MEMORY_WORK') // Asegúrate que este sea el ID exacto en tu BD
+    .filter(session => session.gameType === 'MEMORY_WORK')
     .map(session => ({
       date: new Date(session.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' }),
       score: session.score,
       level: session.level
     }))
-    .slice(0, 10) // Últimas 10 partidas
+    .slice(0, 10) 
     .reverse();
 
-  // B) Filtramos solo los de Stroop (Atención)
+  // B) Atención (Stroop)
   const stroopData = sessions
-    .filter(session => session.gameType === 'ATTENTION_STROOP') // ID exacto en tu BD
+    .filter(session => session.gameType === 'ATTENTION_STROOP')
     .map(session => ({
       date: new Date(session.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' }),
       score: session.score,
@@ -39,14 +39,24 @@ export default function PatientCharts({ logs, sessions }: { logs: any[], session
     .slice(0, 10)
     .reverse();
 
+  // C) Flexibilidad (NUEVO)
+  const flexibilityData = sessions
+    .filter(session => session.gameType === 'FLEXIBILITY_SHIFT')
+    .map(session => ({
+      date: new Date(session.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' }),
+      score: session.score,
+      level: session.level // Aunque sea nivel 1, sirve para ver consistencia
+    }))
+    .slice(0, 10)
+    .reverse();
+
   return (
     <div className="admin-grid">
       
-      {/* --- GRÁFICO 1: BIENESTAR --- */}
-      {/* Lo hacemos ancho completo (span 2) si hay espacio, para darle prioridad */}
-      <div className="admin-card" style={{ gridColumn: '1 / -1', minHeight: '400px' }}>
+      {/* --- GRÁFICO 1: BIENESTAR (Ancho completo) --- */}
+      <div className="admin-card" style={{ gridColumn: '1 / -1', minHeight: '350px' }}>
         <p className="admin-card-title">🩺 Historial de Bienestar (Sueño, Ánimo, Fatiga)</p>
-        <div style={{ width: '100%', height: '300px' }}>
+        <div style={{ width: '100%', height: '280px' }}>
           {healthData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={healthData}>
@@ -67,9 +77,9 @@ export default function PatientCharts({ logs, sessions }: { logs: any[], session
       </div>
 
       {/* --- GRÁFICO 2: MEMORIA --- */}
-      <div className="admin-card" style={{ minHeight: '400px' }}>
+      <div className="admin-card" style={{ minHeight: '350px' }}>
         <p className="admin-card-title">🧠 Memoria de Trabajo</p>
-        <div style={{ width: '100%', height: '300px' }}>
+        <div style={{ width: '100%', height: '280px' }}>
           {memoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={memoryData}>
@@ -79,23 +89,22 @@ export default function PatientCharts({ logs, sessions }: { logs: any[], session
                 <Tooltip cursor={{ fill: '#f1f5f9' }} />
                 <Legend />
                 <Bar dataKey="score" name="Puntaje" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                {/* Nota: Si el nivel es muy bajo comparado al puntaje, a veces es mejor quitarlo o usar otro eje, pero dejémoslo por ahora */}
-                <Bar dataKey="level" name="Nivel Alcanzado" fill="#c4b5fd" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="level" name="Nivel" fill="#c4b5fd" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
               <span style={{ fontSize: '2rem' }}>🧩</span>
-              <p>No ha jugado Memoria aún</p>
+              <p>No ha jugado Memoria</p>
             </div>
           )}
         </div>
       </div>
 
       {/* --- GRÁFICO 3: ATENCIÓN (STROOP) --- */}
-      <div className="admin-card" style={{ minHeight: '400px' }}>
-        <p className="admin-card-title">⚡ Atención Selectiva (Stroop)</p>
-        <div style={{ width: '100%', height: '300px' }}>
+      <div className="admin-card" style={{ minHeight: '350px' }}>
+        <p className="admin-card-title">⚡ Atención (Stroop)</p>
+        <div style={{ width: '100%', height: '280px' }}>
           {stroopData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stroopData}>
@@ -105,13 +114,36 @@ export default function PatientCharts({ logs, sessions }: { logs: any[], session
                 <Tooltip cursor={{ fill: '#f1f5f9' }} />
                 <Legend />
                 <Bar dataKey="score" name="Puntaje" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="level" name="Nivel Alcanzado" fill="#fcd34d" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
               <span style={{ fontSize: '2rem' }}>⚡</span>
-              <p>No ha jugado Stroop aún</p>
+              <p>No ha jugado Stroop</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* --- GRÁFICO 4: FLEXIBILIDAD (NUEVO) --- */}
+      <div className="admin-card" style={{ minHeight: '350px' }}>
+        <p className="admin-card-title">🔀 Flexibilidad Cognitiva</p>
+        <div style={{ width: '100%', height: '280px' }}>
+          {flexibilityData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={flexibilityData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" style={{ fontSize: '12px' }} />
+                <YAxis style={{ fontSize: '12px' }} />
+                <Tooltip cursor={{ fill: '#f1f5f9' }} />
+                <Legend />
+                <Bar dataKey="score" name="Puntaje" fill="#ec4899" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8' }}>
+              <span style={{ fontSize: '2rem' }}>🔀</span>
+              <p>No ha jugado Flexibilidad</p>
             </div>
           )}
         </div>

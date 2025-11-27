@@ -38,6 +38,17 @@ const getSystemPrompt = (gameType: string, score: number, level: number): string
       Ejemplo de respuesta: "¡Excelente velocidad! Lograste suprimir bien el impulso de leer. Para mejorar aún más, prueba a entrecerrar los ojos ligeramente para desenfocar la palabra."
     `;
   }
+   if (gameType === 'FLEXIBILITY_SHIFT') {
+    return `${basePrompt}
+      El juego era de "Flexibilidad Cognitiva" (Cambio de Regla).
+      El usuario debía clasificar figuras por Color o Forma según la regla cambiante.
+      Obtuvo ${score} puntos en 60 segundos.
+      Analiza esto. Puntuación baja (<50): Dificultad para cambiar de foco.
+      Media (50-100): Buena adaptación. Alta (100+): Excelente flexibilidad mental.
+      Consejo: Sugiere practicar "multitasking" consciente o cambiar rutinas diarias pequeñas.
+      Ejemplo: "¡Buena adaptación! Tu cerebro cambia de marcha rápido. Para retarte más, intenta cambiar la mano con la que usas el mouse a ratos."
+    `;
+  }
 
   return basePrompt;
 };

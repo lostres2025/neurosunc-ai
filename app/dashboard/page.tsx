@@ -67,13 +67,19 @@ export default function DashboardPage() {
                 href="/play/memory-work" 
                 className="widget-button-game"
               >
-                Memoria de Trabajo
+                Memoria de Trabajo 🧠
               </Link>
               <Link 
                 href="/play/attention-stroop" 
                 className="widget-button-game"
               >
-                Atención Selectiva
+                Atención Selectiva ⚡
+              </Link>
+               <Link 
+                href="/play/flexibility-shift" 
+                className="widget-button-game"
+              >
+                Flexibilidad Cognitiva 🔀
               </Link>
           </div>
         </div>

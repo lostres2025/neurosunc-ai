@@ -20,7 +20,7 @@ export default function AttentionStroopGame() {
 
   const [gameState, setGameState] = useState<GameState>('start');
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [currentWord, setCurrentWord] = useState(COLORS[0]);
   const [currentColor, setCurrentColor] = useState(COLORS[1]);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +68,7 @@ export default function AttentionStroopGame() {
           gameType: 'ATTENTION_STROOP', 
           score, 
           level: 1, // Stroop suele ser nivel único o basado en velocidad
-          durationSeconds: 60 
+          durationSeconds: 30
         }),
       });
 
@@ -100,7 +100,7 @@ export default function AttentionStroopGame() {
 
   const startGame = () => {
     setScore(0);
-    setTimeLeft(60);
+    setTimeLeft(30);
     setFeedbackFromAI(null);
     setGameState('playing');
     nextRound();

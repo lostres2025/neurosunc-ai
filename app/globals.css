@@ -843,3 +843,138 @@ input, textarea, select {
     padding: 1rem;
   }
 }
+
+/* =========================================
+   7. JUEGO DE FLEXIBILIDAD (CAMBIO DE REGLA)
+   ========================================= */
+
+.flexibility-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 450px;
+  justify-content: center;
+}
+
+.flexibility-instructions {
+  background-color: rgba(15, 23, 42, 0.6);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+  border: 1px solid #334155;
+}
+
+.flexibility-instructions p {
+  margin-bottom: 0.5rem;
+}
+
+/* Área de Juego */
+.flexibility-game-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+/* Indicador de Regla */
+.rule-indicator-box {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.rule-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+}
+
+.rule-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  transition: color 0.3s;
+}
+
+.rule-value.color { color: #f472b6; /* Rosa */ }
+.rule-value.shape { color: #2dd4bf; /* Turquesa */ }
+
+/* Carta Central */
+.card-display-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.game-card {
+  width: 140px;
+  height: 140px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Formas y Colores de la Carta */
+.game-card.circle { border-radius: 50%; }
+.game-card.square { border-radius: 1rem; }
+.game-card.red { background-color: #ef4444; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); }
+.game-card.blue { background-color: #3b82f6; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3); }
+
+/* Botones de Control */
+.flexibility-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.flexibility-btn {
+  background-color: #334155;
+  border: 2px solid #475569;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.1s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.flexibility-btn:active {
+  transform: scale(0.95);
+  background-color: #1e293b;
+}
+
+.btn-label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #cbd5e1;
+}
+
+.btn-icons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Iconos pequeños en los botones */
+.mini-shape {
+  width: 16px;
+  height: 16px;
+}
+.mini-shape.circle { border-radius: 50%; }
+.mini-shape.square { border-radius: 4px; }
+.mini-shape.red { background-color: #ef4444; }
+.mini-shape.blue { background-color: #3b82f6; }
+
+.flexibility-finished-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+}

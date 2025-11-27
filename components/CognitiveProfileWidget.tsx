@@ -77,6 +77,7 @@ export default function CognitiveProfileWidget() {
   const chartData = [
     { subject: 'Memoria', score: profileData.scores.memory, fullMark: 100 },
     { subject: 'Atención', score: profileData.scores.attention, fullMark: 100 },
+    { subject: 'Flexibilidad', score: profileData.scores.flexibility, fullMark: 100 },
     { subject: 'Bienestar', score: profileData.scores.wellness, fullMark: 100 },
   ];
 
