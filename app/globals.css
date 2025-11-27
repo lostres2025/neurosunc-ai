@@ -262,6 +262,7 @@ input, textarea, select {
 .dashboard-widgets-container {
   display: flex;
   flex-direction: column;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Magia responsiva */
   gap: 1rem;
 }
 
@@ -743,6 +744,7 @@ input, textarea, select {
 .admin-nav {
   display: flex;
   flex-direction: column;
+  overflow-x: auto; /* Menú horizontal desplazable */
   gap: 0.5rem;
 }
 
@@ -803,7 +805,8 @@ input, textarea, select {
   background: white;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  overflow: hidden;
+  /*overflow: hidden;*/
+  overflow-x: auto; /* Permite scroll horizontal en tablas */
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -811,6 +814,7 @@ input, textarea, select {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  min-width: 600px; /* Fuerza el scroll si la pantalla es muy chica */
 }
 
 .admin-table th {
