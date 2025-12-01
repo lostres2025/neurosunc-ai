@@ -31,7 +31,7 @@ const getSystemPrompt = (gameType: string, score: number, level: number): string
   if (gameType === 'ATTENTION_STROOP') {
     return `${basePrompt}
       El juego era de "Atención Selectiva" (Test de Stroop: decir el color de la tinta, no la palabra).
-      El usuario obtuvo una puntuación de ${score} en 60 segundos.
+      El usuario obtuvo una puntuación de ${score} en 30 segundos.
       Analiza este resultado. Una puntuación baja (<100) indica dificultad para inhibir la respuesta automática.
       Una puntuación media (100-180) es buena. Una puntuación alta (180+) es excelente.
       Sugiere técnicas como respirar hondo antes de cada respuesta o enfocarse solo en la forma de las letras.
@@ -42,7 +42,7 @@ const getSystemPrompt = (gameType: string, score: number, level: number): string
     return `${basePrompt}
       El juego era de "Flexibilidad Cognitiva" (Cambio de Regla).
       El usuario debía clasificar figuras por Color o Forma según la regla cambiante.
-      Obtuvo ${score} puntos en 60 segundos.
+      Obtuvo ${score} puntos en 30 segundos.
       Analiza esto. Puntuación baja (<50): Dificultad para cambiar de foco.
       Media (50-100): Buena adaptación. Alta (100+): Excelente flexibilidad mental.
       Consejo: Sugiere practicar "multitasking" consciente o cambiar rutinas diarias pequeñas.
