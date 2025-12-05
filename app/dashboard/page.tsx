@@ -8,7 +8,7 @@ import PredictionAlert from '../../components/PredictionAlert';
 import InsightsWidget from '../../components/InsightsWidget';
 import CognitiveProfileWidget from '../../components/CognitiveProfileWidget';
 import DailyContentWidget from '@/components/DailyContentWidget';
-
+import SmartDailyCheckIn from '@/components/SmartDailyCheckIn';
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -54,7 +54,8 @@ export default function DashboardPage() {
         <PredictionAlert />
         <InsightsWidget />
         <DailyContentWidget/>
-        <DailyCheckIn />
+        <SmartDailyCheckIn/>
+        
         
         
         <div className="widget lg-col-span-2">
