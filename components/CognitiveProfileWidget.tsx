@@ -88,7 +88,7 @@ export default function CognitiveProfileWidget() {
         {/* Lado del Gráfico */}
         <div className="radar-chart-container">
           <ResponsiveContainer width="100%" height={250}>
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+            <RadarChart cx="50%" cy="50%" outerRadius="60%" data={chartData}>
               <PolarGrid stroke="#334155" />
               <PolarAngleAxis dataKey="subject" stroke="#94a3b8" />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
