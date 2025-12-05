@@ -26,13 +26,13 @@ export async function GET(request: Request) {
 
     // 3. Consultas a la Base de Datos (Igual que antes, pero con el userId seguro)
     const dailyLogs = await prisma.dailyLog.findMany({
-      where: { userId: userId },
+      where: { userId },
       orderBy: { date: 'asc' },
       take: 30, 
     });
 
     const gameSessions = await prisma.gameSession.findMany({
-      where: { userId: userId },
+      where: { userId },
       orderBy: { createdAt: 'asc' },
       take: 50,
     });

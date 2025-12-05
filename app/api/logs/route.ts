@@ -11,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'No autorizado. Debes iniciar sesión.' }, { status: 401 });
     }
 
-    const userId = session.user.id; // ¡Aquí está el ID real!
+    const userId = (session.user as any).id; // ¡Aquí está el ID real!
 
     // 2. Obtener el resto de datos del cuerpo
     const body = await request.json();

@@ -1,47 +1,40 @@
-// src/app/api/predict/route.ts
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
+import { auth } from '@/auth';
 
-interface DailyLog {
-  sleepHours: number;
-  mood: number;
-  fatigue: number;
-}
-
-// El Motor de Reglas Simple
-function getPrediction(log: DailyLog): string | null {
-  if (log.sleepHours < 6) {
-    return "Notamos que dormiste poco. Tu enfoque podría ser menor hoy. Considera una siesta corta o una sesión de meditación para recargarte.";
-  }
-  if (log.fatigue <= 2 && log.mood <= 2) {
-    return "Parece que empiezas el día con poca energía y bajo ánimo. Sé amable contigo mismo. Una rutina de ejercicios ligeros podría ayudar a mejorar tu estado.";
-  }
-  if (log.fatigue >= 4 && log.mood >= 4 && log.sleepHours >= 7) {
-    return "¡Todos los indicadores son positivos! Parece que hoy será un día de alto rendimiento. ¡Aprovéchalo al máximo!";
-  }
-  return null; // No hay una predicción clara
-}
-
+const groq = new OpenAI({
+  baseURL: 'https://api.groq.com/openai/v1',
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 export async function POST(request: Request) {
   try {
-    const log = await request.json() as DailyLog;
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-    if (log.sleepHours === undefined || !log.mood || !log.fatigue) {
-      return NextResponse.json({ message: 'Faltan datos del registro diario.' }, { status: 400 });
-    }
+    const logData = await request.json(); // Recibe el último log
 
-    const prediction = getPrediction(log);
+    const systemPrompt = `
+      Eres un analista de salud mental. Analiza los datos del usuario:
+      Sueño: ${logData.sleepHours}h, Ánimo: ${logData.mood}/5, Energía: ${logData.fatigue}/5.
+      Genera una "Alerta de Predicción" de 1 frase.
+      Si los datos son buenos, felicita. Si son bajos, da un consejo de precaución.
+      Ejemplo: "Tu energía está baja hoy; prioriza tareas simples para evitar frustración."
+    `;
 
-    // Solo devolvemos una respuesta si hay una predicción relevante
-    if (prediction) {
-      return NextResponse.json({ prediction });
-    }
-    
-    // Si no hay predicción, devolvemos una respuesta vacía exitosa
-    return new NextResponse(null, { status: 204 }); // 204 No Content
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile", // <--- MODELO CORRECTO
+      messages: [{ role: "system", content: systemPrompt }],
+      temperature: 0.7,
+      max_tokens: 100,
+    });
+
+    const prediction = completion.choices[0]?.message?.content || "Hoy es un buen día para cuidar de ti.";
+
+    return NextResponse.json({ prediction });
 
   } catch (error) {
     console.error('[PREDICT_API_ERROR]', error);
-    return NextResponse.json({ message: 'Error al generar la predicción.' }, { status: 500 });
+    return NextResponse.json({ prediction: "Recuerda descansar si lo necesitas." });
   }
 }
